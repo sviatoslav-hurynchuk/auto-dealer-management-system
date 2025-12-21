@@ -102,5 +102,35 @@ await using (var conn = new SqlConnection(connString))
 }
 sw.Stop();
 Console.WriteLine($"Додано 1000 клієнтів за {sw.ElapsedMilliseconds} мс.");
+Console.WriteLine("\n--- Task 6: Async & Cancellation Demo ---");
 
+//timeout demo
+Console.WriteLine("1. Запускаємо довгу операцію (5 сек) з таймаутом 2 сек...");
+var timeoutCts = new CancellationTokenSource();
+timeoutCts.CancelAfter(TimeSpan.FromSeconds(2)); // Ставимо ліміт 2 секунди
+
+try
+{
+    var timer = Stopwatch.StartNew();
+    await carsRepo.SimulateLongProcessAsync(5, timeoutCts.Token);
+    timer.Stop();
+    Console.WriteLine($"Операція завершилась за {timer.Elapsed.TotalSeconds:F1} с.");
+}
+catch (Exception ex) when (ex is OperationCanceledException || (ex is SqlException && ex.Message.Contains("cancelled")))
+{
+    Console.WriteLine("!!! Операцію скасовано через таймаут (успіх).");
+}
+
+// task.WhenAll demo
+Console.WriteLine("\n2. Запускаємо 3 запити паралельно...");
+var parallelCts = new CancellationTokenSource();
+var t1 = carsRepo.GetByIdAsync(newId, parallelCts.Token);
+var t2 = carsRepo.GetCarsWithDetailsAsync(parallelCts.Token);
+var t3 = carsRepo.GetPagedAsync(1, 10, "Price", parallelCts.Token);
+
+var parallelSw = Stopwatch.StartNew();
+await Task.WhenAll(t1, t2, t3);
+parallelSw.Stop();
+
+Console.WriteLine($"Всі 3 запити виконано паралельно за {parallelSw.ElapsedMilliseconds} мс.");
 Console.WriteLine("\nЗавершення роботи.");

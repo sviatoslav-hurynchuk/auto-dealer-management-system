@@ -152,5 +152,20 @@ namespace backend.Repositories
                 Status = reader.GetString(reader.GetOrdinal("Status"))
             };
         }
+
+        //Async & Cancellation
+public async Task SimulateLongProcessAsync(int seconds, CancellationToken token = default)
+        {
+            string sql = $"WAITFOR DELAY '00:00:{seconds:D2}'";
+
+            await using var conn = await _db.CreateOpenConnectionAsync(token);
+            await using var cmd = new SqlCommand(sql, conn);
+
+            // Встановлюємо таймаут команди трохи більшим за час очікування, 
+            // щоб спрацював саме наш CancellationToken, а не таймаут SQL клієнта
+            cmd.CommandTimeout = seconds + 5;
+
+            await cmd.ExecuteNonQueryAsync(token);
+        }
     }
 }
