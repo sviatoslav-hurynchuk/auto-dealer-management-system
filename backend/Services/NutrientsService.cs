@@ -1,0 +1,81 @@
+﻿using backend.Models;
+using backend.Exceptions;
+using backend.Repositories.Interfaces;
+
+namespace backend.Services
+{
+    public class NutrientsService
+    {
+        private readonly INutrientsRepository _nutrientsRepository;
+
+        public NutrientsService(INutrientsRepository nutrientsRepository)
+        {
+            _nutrientsRepository = nutrientsRepository;
+        }
+
+        public async Task<Nutrients?> GetNutrientsByFoodAsync(int foodId)
+        {
+            return await _nutrientsRepository.GetNutrientsByFoodAsync(foodId);
+        }
+
+        public async Task<Nutrients?> GetNutrientsByDishAsync(int dishId)
+        {
+            return await _nutrientsRepository.GetNutrientsByDishAsync(dishId);
+        }
+
+        public async Task<Nutrients?> GetNutrientsByMealAsync(int mealId)
+        {
+            return await _nutrientsRepository.GetNutrientsByMealAsync(mealId);
+        }
+
+        public async Task<Nutrients> CreateNutrientsAsync(int foodId, decimal protein, decimal fat, decimal carbohydrate)
+        {
+            ValidateInput(foodId, protein, fat, carbohydrate);
+
+            var created = await _nutrientsRepository.CreateNutrientsAsync(foodId, protein, fat, carbohydrate);
+            if (created == null)
+                throw new InvalidOperationException("Failed to create nutrients record");
+
+            return created;
+        }
+
+        public async Task<Nutrients> UpdateNutrientsAsync(int foodId, decimal protein, decimal fat, decimal carbohydrate)
+        {
+            ValidateInput(foodId, protein, fat, carbohydrate);
+
+            var existing = await _nutrientsRepository.GetNutrientsByFoodAsync(foodId);
+            if (existing == null)
+                throw new NotFoundException($"Nutrients record for food with id {foodId} not found");
+
+            var updated = await _nutrientsRepository.UpdateNutrientsAsync(foodId, protein, fat, carbohydrate);
+            if (updated == null)
+                throw new InvalidOperationException("Failed to update nutrients record");
+
+            return updated;
+        }
+
+        public async Task<bool> DeleteNutrientsAsync(int foodId)
+        {
+            if (foodId <= 0)
+                throw new ValidationException("Invalid foodId");
+
+            var existing = await _nutrientsRepository.GetNutrientsByFoodAsync(foodId);
+            if (existing == null)
+                throw new NotFoundException($"Nutrients record for food with id {foodId} not found");
+
+            return await _nutrientsRepository.DeleteNutrientsAsync(foodId);
+        }
+
+        private void ValidateInput(int foodId, decimal protein, decimal fat, decimal carbohydrate)
+        {
+            if (foodId <= 0)
+                throw new ValidationException("Invalid foodId");
+
+            if (protein < 0 || fat < 0 || carbohydrate < 0)
+                throw new ValidationException("Nutrient values cannot be negative");
+
+            if (protein <= 0 && fat <= 0 && carbohydrate <= 0)
+                throw new ValidationException("At least one macronutrient (protein, fat, carbohydrate) must be greater than zero");
+        }
+    }
+}
