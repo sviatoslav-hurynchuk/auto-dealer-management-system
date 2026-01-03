@@ -1,0 +1,25 @@
+language: en-US
+
+reviews:
+  profile: chill      
+  request_changes: false
+  high_level_summary: true
+  poem: false
+
+paths:
+  include:
+    - backend/**
+  exclude:
+    - frontend/**
+    - "**/*.md"
+    - "**/*.yml"
+    - "**/*.json"
+
+rules:
+  - focus: "architecture, security, performance, clean code"
+  - avoid: "nitpicks, formatting-only comments"
+
+severity:
+  critical: true
+  major: true
+  minor: false
