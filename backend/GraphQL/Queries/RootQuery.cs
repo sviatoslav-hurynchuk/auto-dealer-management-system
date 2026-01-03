@@ -5,11 +5,11 @@ namespace backend.GraphQL.Queries
 {
     public class RootQuery : ObjectGraphType
     {
-        public RootQuery(UserQuery userQuery, FoodQuery foodQuery, DishQuery dishQuery, MealQuery mealQuery, ImageQuery imageQuery, CalorieLimitQuery calorieLimitQuery)
+        public RootQuery()
         {
             Name = "Query";
 
-            var queries = new ObjectGraphType[] { userQuery, foodQuery, dishQuery, mealQuery, imageQuery, calorieLimitQuery };
+            var queries = new ObjectGraphType[] {};
 
             foreach (var query in queries)
             {
