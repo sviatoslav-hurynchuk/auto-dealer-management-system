@@ -1,6 +1,7 @@
 # ===============================
 # Backend (ASP.NET Core)
 # ===============================
+/backend/.env
 /backend/bin/
 /backend/obj/
 /backend/*.user
