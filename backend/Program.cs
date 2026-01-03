@@ -54,7 +54,6 @@ namespace backend
             builder.Services.AddScoped<OrderService>();
             builder.Services.AddScoped<SaleService>();
             builder.Services.AddScoped<ServiceRequestService>();
-            builder.Services.AddScoped<JwtService>();
 
             // ==============================
             // GraphQL Types & Schema (заглушки)

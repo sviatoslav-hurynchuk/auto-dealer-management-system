@@ -3,8 +3,14 @@ name: "CodeQL"
 on:
   pull_request:
     branches: [ "master" ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/codeql.yml'
   push:
     branches: [ "master" ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/codeql.yml'
 
 jobs:
   analyze:
@@ -29,10 +35,6 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          paths: |
-            backend/**
-          paths-ignore: |
-            frontend/**
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4

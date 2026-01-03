@@ -1,7 +1,7 @@
-language: csharp
+language: en-US
 
 reviews:
-  profile: thorough       
+  profile: chill      
   request_changes: false
   high_level_summary: true
   poem: false
