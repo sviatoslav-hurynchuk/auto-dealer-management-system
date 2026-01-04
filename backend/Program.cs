@@ -51,7 +51,7 @@ namespace backend
             // ==============================
             // Services (заглушки)
             // ==============================
-            //builder.Services.AddScoped<CarService>();
+            builder.Services.AddScoped<CarService>();
             //builder.Services.AddScoped<MakeService>();
             //builder.Services.AddScoped<CustomerService>();
             //builder.Services.AddScoped<EmployeeService>();
@@ -63,7 +63,7 @@ namespace backend
             // ==============================
             // GraphQL Types & Schema (заглушки)
             // ==============================
-            //builder.Services.AddScoped<CarType>();
+            builder.Services.AddScoped<CarType>();
             //builder.Services.AddScoped<MakeType>();
             //builder.Services.AddScoped<CustomerType>();
             //builder.Services.AddScoped<EmployeeType>();

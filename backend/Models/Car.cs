@@ -10,5 +10,11 @@ public class Car
     public string? Color { get; set; }
     public string Vin { get; set; } = null!;
     public int? SupplierId { get; set; }
+    public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
+    public string? Condition { get; set; } // New / Used
+    public int? Mileage { get; set; }
+    public string? BodyType { get; set; }
     public string Status { get; set; } = null!;
+
 }
