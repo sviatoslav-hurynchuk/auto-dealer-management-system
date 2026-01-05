@@ -79,6 +79,7 @@ CREATE TABLE dbo.Sales
     EmployeeID INT NOT NULL,
     SaleDate DATETIME NOT NULL,
     FinalPrice DECIMAL(12,2) NOT NULL,
+    Status VARCHAR(50) NOT NULL DEFAULT 'Completed',
     CONSTRAINT FK_Sales_Cars FOREIGN KEY (CarID) REFERENCES dbo.Cars(id),
     CONSTRAINT FK_Sales_Customers FOREIGN KEY (CustomerID) REFERENCES dbo.Customers(id),
     CONSTRAINT FK_Sales_Employees FOREIGN KEY (EmployeeID) REFERENCES dbo.Employees(id)

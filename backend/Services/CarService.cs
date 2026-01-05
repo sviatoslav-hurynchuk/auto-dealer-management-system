@@ -1,4 +1,6 @@
-﻿using backend.Models;
+﻿using backend.Exceptions;
+using backend.Models;
+using backend.Repositories;
 using backend.Repositories.Interfaces;
 
 namespace backend.Services
@@ -70,6 +72,10 @@ namespace backend.Services
             if (id <= 0)
                 throw new ArgumentException("Car id must be greater than zero.");
 
+            /*var hasSales = await _saleRepository.ExistsByCarIdAsync(id);
+            if (hasSales)
+                throw new ConflictException("Car cannot be deleted because it has sales");
+            */
             var deleted = await _carRepository.DeleteCarAsync(id);
             if (!deleted)
                 throw new KeyNotFoundException($"Car with id {id} not found.");

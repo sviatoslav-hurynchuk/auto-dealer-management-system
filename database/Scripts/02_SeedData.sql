@@ -58,10 +58,11 @@ VALUES
 
 
 
-INSERT INTO dbo.Sales (CarID, CustomerID, EmployeeID, SaleDate, FinalPrice)
+INSERT INTO dbo.Sales (CarID, CustomerID, EmployeeID, SaleDate, FinalPrice, Status)
 VALUES
-    (1, 1, 1, GETDATE(), 21000),
-    (2, 2, 2, GETDATE(), 23000);
+    (1, 1, 1, GETDATE(), 21000, 'Completed'),
+    (2, 2, 2, GETDATE(), 23000, 'Completed');
+
 
 
 
