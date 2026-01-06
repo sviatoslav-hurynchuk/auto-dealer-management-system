@@ -1,6 +1,5 @@
 ﻿using backend.Exceptions;
 using backend.Models;
-using backend.Repositories;
 using backend.Repositories.Interfaces;
 
 namespace backend.Services
@@ -25,12 +24,16 @@ namespace backend.Services
         // ==============================
         // GET BY ID
         // ==============================
-        public async Task<Car?> GetCarByIdAsync(int id)
+        public async Task<Car> GetCarByIdAsync(int id)
         {
             if (id <= 0)
-                throw new ArgumentException("Car id must be greater than zero.");
+                throw new ValidationException("Car id must be greater than zero.");
 
-            return await _carRepository.GetCarByIdAsync(id);
+            var car = await _carRepository.GetCarByIdAsync(id);
+            if (car == null)
+                throw new NotFoundException($"Car with id {id} not found.");
+
+            return car;
         }
 
         // ==============================
@@ -42,7 +45,7 @@ namespace backend.Services
 
             var createdCar = await _carRepository.CreateCarAsync(car);
             if (createdCar == null)
-                throw new InvalidOperationException("Failed to create car.");
+                throw new ConflictException("Failed to create car.");
 
             return createdCar;
         }
@@ -53,13 +56,17 @@ namespace backend.Services
         public async Task<Car> UpdateCarAsync(Car car)
         {
             if (car.Id <= 0)
-                throw new ArgumentException("Car id must be specified for update.");
+                throw new ValidationException("Car id must be specified for update.");
 
             ValidateCar(car, isUpdate: true);
 
+            var existingCar = await _carRepository.GetCarByIdAsync(car.Id);
+            if (existingCar == null)
+                throw new NotFoundException($"Car with id {car.Id} not found.");
+
             var updatedCar = await _carRepository.UpdateCarAsync(car);
             if (updatedCar == null)
-                throw new KeyNotFoundException($"Car with id {car.Id} not found.");
+                throw new ConflictException("Failed to update car.");
 
             return updatedCar;
         }
@@ -67,18 +74,21 @@ namespace backend.Services
         // ==============================
         // DELETE
         // ==============================
-        public async Task DeleteCarAsync(int id)//////TODO: Add logic for sales, orders and service requests before deleting a car when their crud operations are ready
+        public async Task DeleteCarAsync(int id)
         {
             if (id <= 0)
-                throw new ArgumentException("Car id must be greater than zero.");
+                throw new ValidationException("Car id must be greater than zero.");
 
-            /*var hasSales = await _saleRepository.ExistsByCarIdAsync(id);
-            if (hasSales)
-                throw new ConflictException("Car cannot be deleted because it has sales");
-            */
+            var car = await _carRepository.GetCarByIdAsync(id);
+            if (car == null)
+                throw new NotFoundException($"Car with id {id} not found.");
+
+            // if (hasSales || hasOrders)
+            //     throw new ConflictException("Car cannot be deleted because it has related records.");
+
             var deleted = await _carRepository.DeleteCarAsync(id);
             if (!deleted)
-                throw new KeyNotFoundException($"Car with id {id} not found.");
+                throw new ConflictException("Failed to delete car.");
         }
 
         // ==============================
@@ -87,29 +97,36 @@ namespace backend.Services
         private static void ValidateCar(Car car, bool isUpdate)
         {
             if (car == null)
-                throw new ArgumentNullException(nameof(car));
+                throw new ValidationException("Car payload is required.");
 
             if (car.MakeId <= 0)
-                throw new ArgumentException("MakeId is required.");
+                throw new ValidationException("MakeId is required.");
 
             if (string.IsNullOrWhiteSpace(car.Model))
-                throw new ArgumentException("Model is required.");
+                throw new ValidationException("Model is required.");
 
             if (car.Year < 1900 || car.Year > DateTime.UtcNow.Year + 1)
-                throw new ArgumentException("Year is invalid.");
+                throw new ValidationException("Year is invalid.");
 
             if (car.Price < 0)
-                throw new ArgumentException("Price cannot be negative.");
+                throw new ValidationException("Price cannot be negative.");
 
             if (string.IsNullOrWhiteSpace(car.Vin))
-                throw new ArgumentException("VIN is required.");
+                throw new ValidationException("VIN is required.");
 
             if (string.IsNullOrWhiteSpace(car.Status))
-                throw new ArgumentException("Status is required.");
+                throw new ValidationException("Status is required.");
 
-            if (!string.IsNullOrWhiteSpace(car.Condition) && car.Condition != "New" && car.Condition != "Used")
-                throw new ArgumentException("Condition must be 'New' or 'Used'.");
+            if (car.Status != "Pending" &&
+                car.Status != "In stock" &&
+                car.Status != "Sold" &&
+                car.Status != "Archived")
+                throw new ValidationException("Invalid car status.");
+
+            if (!string.IsNullOrWhiteSpace(car.Condition) &&
+                car.Condition != "New" &&
+                car.Condition != "Used")
+                throw new ValidationException("Condition must be 'New' or 'Used'.");
         }
-
     }
 }
