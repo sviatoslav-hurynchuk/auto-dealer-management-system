@@ -1,5 +1,6 @@
 ﻿using backend.Exceptions;
 using backend.Models;
+using backend.Repositories;
 using backend.Repositories.Interfaces;
 
 namespace backend.Services
@@ -7,10 +8,13 @@ namespace backend.Services
     public class CarService
     {
         private readonly ICarRepository _carRepository;
-
-        public CarService(ICarRepository carRepository)
+        private readonly ISaleRepository _saleRepository;
+        //private readonly IOrderRepository _orderRepository;
+        public CarService(ICarRepository carRepository, ISaleRepository saleRepository)//,IOrderRepository orderRepository)
         {
             _carRepository = carRepository;
+            _saleRepository = saleRepository;
+            //_orderRepository = orderRepository;
         }
 
         // ==============================
@@ -83,8 +87,11 @@ namespace backend.Services
             if (car == null)
                 throw new NotFoundException($"Car with id {id} not found.");
 
-            // if (hasSales || hasOrders)
-            //     throw new ConflictException("Car cannot be deleted because it has related records.");
+            if (await _saleRepository.ExistsByCarIdAsync(id))
+                throw new ConflictException("Car cannot be deleted because it has sales.");
+
+            //if (await _orderRepository.ExistsByCarIdAsync(id))
+                //throw new ConflictException("Car cannot be deleted because it has orders.");
 
             var deleted = await _carRepository.DeleteCarAsync(id);
             if (!deleted)
