@@ -8,4 +8,5 @@ public class Sale
     public int EmployeeId { get; set; }
     public DateTime SaleDate { get; set; }
     public decimal FinalPrice { get; set; }
+    public string Status { get; set; } = "Completed";
 }

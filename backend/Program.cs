@@ -35,41 +35,33 @@ namespace backend
                     "Connection string 'DefaultConnection' is missing in appsettings.json.");
             }
 
-            // ==============================
-            // Repositories (заглушки)
-            // ==============================
-            // TODO: замінити на свої репозиторії
             builder.Services.AddScoped<ICarRepository, CarRepository>(p => new CarRepository(connectionString!));
             //builder.Services.AddScoped<IMakeRepository, MakeRepository>(p => new MakeRepository(connectionString!));
             //builder.Services.AddScoped<ICustomerRepository, CustomerRepository>(p => new CustomerRepository(connectionString!));
             //builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>(p => new EmployeeRepository(connectionString!));
             //builder.Services.AddScoped<ISupplierRepository, SupplierRepository>(p => new SupplierRepository(connectionString!));
             //builder.Services.AddScoped<IOrderRepository, OrderRepository>(p => new OrderRepository(connectionString!));
-            //builder.Services.AddScoped<ISaleRepository, SaleRepository>(p => new SaleRepository(connectionString!));
+            builder.Services.AddScoped<ISaleRepository, SaleRepository>(p => new SaleRepository(connectionString!));
            // builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>(p => new ServiceRequestRepository(connectionString!));
 
-            // ==============================
-            // Services (заглушки)
-            // ==============================
+
             builder.Services.AddScoped<CarService>();
             //builder.Services.AddScoped<MakeService>();
             //builder.Services.AddScoped<CustomerService>();
             //builder.Services.AddScoped<EmployeeService>();
             //builder.Services.AddScoped<SupplierService>();
             //builder.Services.AddScoped<OrderService>();
-            //builder.Services.AddScoped<SaleService>();
+            builder.Services.AddScoped<SaleService>();
             //builder.Services.AddScoped<ServiceRequestService>();
 
-            // ==============================
-            // GraphQL Types & Schema (заглушки)
-            // ==============================
+          
             builder.Services.AddScoped<CarType>();
             //builder.Services.AddScoped<MakeType>();
             //builder.Services.AddScoped<CustomerType>();
             //builder.Services.AddScoped<EmployeeType>();
             //builder.Services.AddScoped<SupplierType>();
             //builder.Services.AddScoped<OrderType>();
-            //builder.Services.AddScoped<SaleType>();
+            builder.Services.AddScoped<SaleType>();
             //builder.Services.AddScoped<ServiceRequestType>();
 
             builder.Services.AddScoped<RootQuery>();
