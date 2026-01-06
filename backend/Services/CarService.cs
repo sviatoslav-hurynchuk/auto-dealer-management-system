@@ -9,12 +9,12 @@ namespace backend.Services
     {
         private readonly ICarRepository _carRepository;
         private readonly ISaleRepository _saleRepository;
-        //private readonly IOrderRepository _orderRepository;
-        public CarService(ICarRepository carRepository, ISaleRepository saleRepository)//,IOrderRepository orderRepository)
+        private readonly IOrderRepository _orderRepository;
+        public CarService(ICarRepository carRepository, ISaleRepository saleRepository,IOrderRepository orderRepository)
         {
             _carRepository = carRepository;
             _saleRepository = saleRepository;
-            //_orderRepository = orderRepository;
+            _orderRepository = orderRepository;
         }
 
         // ==============================
@@ -90,8 +90,8 @@ namespace backend.Services
             if (await _saleRepository.ExistsByCarIdAsync(id))
                 throw new ConflictException("Car cannot be deleted because it has sales.");
 
-            //if (await _orderRepository.ExistsByCarIdAsync(id))
-                //throw new ConflictException("Car cannot be deleted because it has orders.");
+            if (await _orderRepository.ExistsByCarIdAsync(id))
+                throw new ConflictException("Car cannot be deleted because it has orders.");
 
             var deleted = await _carRepository.DeleteCarAsync(id);
             if (!deleted)

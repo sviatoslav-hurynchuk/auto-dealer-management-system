@@ -9,9 +9,9 @@ namespace backend.Repositories
     {
         private readonly string _connectionString;
 
-        public OrderRepository(IConfiguration configuration)
+        public OrderRepository(string connectionString)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection")!;
+            _connectionString = connectionString;
         }
 
         public async Task<IEnumerable<Order>> GetAllOrdersAsync()

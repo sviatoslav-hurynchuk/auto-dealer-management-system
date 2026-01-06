@@ -4,11 +4,11 @@ namespace backend.GraphQL.Mutations
 {
     public class RootMutation : ObjectGraphType
     {
-        public RootMutation(CarMutation carMutation, SaleMutation saleMutation)
+        public RootMutation(CarMutation carMutation, SaleMutation saleMutation, OrderMutation orderMutation)
         {
             Name = "Mutation";
 
-            var mutations = new ObjectGraphType[] { carMutation, saleMutation };
+            var mutations = new ObjectGraphType[] { carMutation, saleMutation, orderMutation };
 
             foreach (var mutation in mutations)
             {
