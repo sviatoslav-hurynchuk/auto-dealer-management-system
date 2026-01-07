@@ -5,11 +5,11 @@ namespace backend.GraphQL.Queries
 {
     public class RootQuery : ObjectGraphType
     {
-        public RootQuery(CarQuery carQuery, SaleQuery saleQuery, OrderQuery orderQuery)
+        public RootQuery(CarQuery carQuery, SaleQuery saleQuery, OrderQuery orderQuery, MakeQuery makeQuery)
         {
             Name = "Query";
 
-            var queries = new ObjectGraphType[] { carQuery, saleQuery, orderQuery };
+            var queries = new ObjectGraphType[] { carQuery, saleQuery, orderQuery, makeQuery };
 
             foreach (var query in queries)
             {
