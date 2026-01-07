@@ -75,6 +75,17 @@ namespace backend.Services
             if (existingOrder == null)
                 throw new NotFoundException($"Order with id {order.Id} not found.");
 
+            // If CarId changed, validate the new car
+            if (existingOrder.CarId != order.CarId)
+            {
+                var car = await _carRepository.GetCarByIdAsync(order.CarId);
+                if (car == null)
+                    throw new NotFoundException("Car not found.");
+
+                if (car.Status != "Pending")
+                    throw new ConflictException("Car cannot be ordered in its current status.");
+            }
+
             var updated = await _orderRepository.UpdateOrderAsync(order);
             if (updated == null)
                 throw new InvalidOperationException("Failed to update order.");

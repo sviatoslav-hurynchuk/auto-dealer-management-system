@@ -52,9 +52,6 @@ namespace backend.GraphQL.Mutations
                         context.GetArgument<int>("id")
                     );
 
-                    if (sale == null)
-                        throw new ExecutionError("Sale not found");
-
                     sale.CarId = context.GetArgument<int?>("carId") ?? sale.CarId;
                     sale.CustomerId = context.GetArgument<int?>("customerId") ?? sale.CustomerId;
                     sale.EmployeeId = context.GetArgument<int?>("employeeId") ?? sale.EmployeeId;

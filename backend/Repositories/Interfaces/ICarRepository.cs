@@ -9,5 +9,6 @@ namespace backend.Repositories.Interfaces
         Task<Car?> CreateCarAsync(Car car);
         Task<Car?> UpdateCarAsync(Car car);
         Task<bool> DeleteCarAsync(int id);
+        Task<bool> ExistsByMakeIdAsync(int makeId);
     }
 }

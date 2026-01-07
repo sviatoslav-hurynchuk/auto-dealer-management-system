@@ -50,6 +50,10 @@ namespace backend.Services
             if (!exists)
                 throw new NotFoundException("Supplier not found.");
 
+            var duplicate = await _supplierRepository.GetSupplierByCompanyNameAsync(supplier.CompanyName);
+                if (duplicate != null && duplicate.Id != supplier.Id)
+                throw new ConflictException("Another supplier with this company name already exists.");
+
             return await _supplierRepository.UpdateSupplierAsync(supplier);
         }
 

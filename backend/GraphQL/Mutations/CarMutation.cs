@@ -72,8 +72,6 @@ namespace backend.GraphQL.Mutations
                 .ResolveAsync(async context =>
                 {
                     var car = await carService.GetCarByIdAsync(context.GetArgument<int>("id"));
-                    if (car == null)
-                        throw new ExecutionError("Car not found");
 
                     car.MakeId = context.GetArgument<int?>("makeId") ?? car.MakeId;
                     car.Model = context.GetArgument<string?>("model") ?? car.Model;

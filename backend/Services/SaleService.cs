@@ -58,11 +58,12 @@ namespace backend.Services
             if (createdSale == null)
                 throw new ConflictException("Failed to create sale");
 
-            // Бізнес-логіка
+
+            // TODO: This operation must be wrapped in a transaction
             if (sale.Status == "Completed")
             {
                 car.Status = "Sold";
-                await _carRepository.UpdateCarAsync(car);
+                var updatedCar = await _carRepository.UpdateCarAsync(car) ?? throw new ConflictException("Failed to update car status after sale creation");
             }
 
             return createdSale;
@@ -97,7 +98,9 @@ namespace backend.Services
                     throw new ConflictException("Car is already sold");
 
                 car.Status = "Sold";
-                await _carRepository.UpdateCarAsync(car);
+
+                // TODO: This operation must be wrapped in a transaction
+                var updatedCar = await _carRepository.UpdateCarAsync(car) ?? throw new ConflictException("Failed to update car status after sale completion");
             }
 
             return updatedSale;

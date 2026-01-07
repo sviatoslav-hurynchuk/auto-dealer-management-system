@@ -162,5 +162,13 @@ namespace backend.Repositories
             var affectedRows = await connection.ExecuteAsync(sql, new { Id = id });
             return affectedRows > 0;
         }
+
+        public async Task<bool> ExistsByMakeIdAsync(int makeId)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            const string sql = "SELECT 1 FROM Cars WHERE MakeId = @MakeId";
+            var result = await connection.QueryFirstOrDefaultAsync<int?>(sql, new { MakeId = makeId });
+            return result.HasValue;
+        }
     }
 }

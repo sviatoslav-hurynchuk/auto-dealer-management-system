@@ -45,7 +45,7 @@ namespace backend.Services
         // ==============================
         public async Task<Car> CreateCarAsync(Car car)
         {
-            ValidateCar(car, isUpdate: false);
+            ValidateCar(car);
 
             var createdCar = await _carRepository.CreateCarAsync(car);
             if (createdCar == null)
@@ -62,7 +62,7 @@ namespace backend.Services
             if (car.Id <= 0)
                 throw new ValidationException("Car id must be specified for update.");
 
-            ValidateCar(car, isUpdate: true);
+            ValidateCar(car);
 
             var existingCar = await _carRepository.GetCarByIdAsync(car.Id);
             if (existingCar == null)
@@ -101,7 +101,7 @@ namespace backend.Services
         // ==============================
         // VALIDATION
         // ==============================
-        private static void ValidateCar(Car car, bool isUpdate)
+        private static void ValidateCar(Car car)
         {
             if (car == null)
                 throw new ValidationException("Car payload is required.");

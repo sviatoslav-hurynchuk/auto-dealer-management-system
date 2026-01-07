@@ -95,8 +95,7 @@ namespace backend.Services
             if (!exists)
                 throw new NotFoundException($"Make with id {id} not found.");
 
-            var cars = await _carRepository.GetAllCarsAsync();
-            if (cars.Any(c => c.MakeId == id))
+            if (await _carRepository.ExistsByMakeIdAsync(id))
                 throw new ConflictException("Make cannot be deleted because it is used by cars.");
 
             var deleted = await _makeRepository.DeleteMakeAsync(id);
