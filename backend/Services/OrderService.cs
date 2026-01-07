@@ -8,13 +8,16 @@ namespace backend.Services
     {
         private readonly IOrderRepository _orderRepository;
         private readonly ICarRepository _carRepository;
+        private readonly ISupplierRepository _supplierRepository;
 
         public OrderService(
             IOrderRepository orderRepository,
-            ICarRepository carRepository)
+            ICarRepository carRepository,
+            ISupplierRepository supplierRepository)
         {
             _orderRepository = orderRepository;
             _carRepository = carRepository;
+            _supplierRepository = supplierRepository;
         }
 
         // ==============================
@@ -47,12 +50,18 @@ namespace backend.Services
         {
             ValidateOrder(order);
 
+            // Перевірка авто
             var car = await _carRepository.GetCarByIdAsync(order.CarId);
             if (car == null)
                 throw new NotFoundException("Car not found.");
 
             if (car.Status != "Pending")
                 throw new ConflictException("Car cannot be ordered in its current status.");
+
+            // Перевірка постачальника
+            var supplier = await _supplierRepository.GetSupplierByIdAsync(order.SupplierId);
+            if (supplier == null)
+                throw new NotFoundException("Supplier not found.");
 
             var createdOrder = await _orderRepository.CreateOrderAsync(order);
             if (createdOrder == null)
@@ -75,7 +84,7 @@ namespace backend.Services
             if (existingOrder == null)
                 throw new NotFoundException($"Order with id {order.Id} not found.");
 
-            // If CarId changed, validate the new car
+            // Якщо змінився CarId, перевіряємо нове авто
             if (existingOrder.CarId != order.CarId)
             {
                 var car = await _carRepository.GetCarByIdAsync(order.CarId);
@@ -84,6 +93,14 @@ namespace backend.Services
 
                 if (car.Status != "Pending")
                     throw new ConflictException("Car cannot be ordered in its current status.");
+            }
+
+            // Якщо змінився SupplierId, перевіряємо нового постачальника
+            if (existingOrder.SupplierId != order.SupplierId)
+            {
+                var supplier = await _supplierRepository.GetSupplierByIdAsync(order.SupplierId);
+                if (supplier == null)
+                    throw new NotFoundException("Supplier not found.");
             }
 
             var updated = await _orderRepository.UpdateOrderAsync(order);
