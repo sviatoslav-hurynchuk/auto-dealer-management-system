@@ -140,6 +140,9 @@ namespace backend.Services
             if (order.Quantity <= 0)
                 throw new ValidationException("Quantity must be greater than zero.");
 
+            if (order.OrderDate == default)
+                throw new ValidationException("OrderDate is required.");
+
             if (string.IsNullOrWhiteSpace(order.Status))
                 throw new ValidationException("Status is required.");
 
