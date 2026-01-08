@@ -10,7 +10,6 @@ namespace backend.Repositories.Interfaces
         Task<Sale?> UpdateSaleAsync(Sale sale);
         Task<bool> DeleteSaleAsync(int id);
         Task<bool> ExistsByCarIdAsync(int carId);
-
-
+        Task<bool> ExistsByEmployeeIdAsync(int employeeId);
     }
 }

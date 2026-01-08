@@ -8,14 +8,18 @@ namespace backend.Services
     {
         private readonly ISaleRepository _saleRepository;
         private readonly ICarRepository _carRepository;
+        private readonly IEmployeeRepository _employeeRepository;
 
         public SaleService(
             ISaleRepository saleRepository,
-            ICarRepository carRepository)
+            ICarRepository carRepository,
+            IEmployeeRepository employeeRepository)
         {
             _saleRepository = saleRepository;
             _carRepository = carRepository;
+            _employeeRepository = employeeRepository;
         }
+
 
         // ==============================
         // GET ALL
@@ -54,6 +58,13 @@ namespace backend.Services
             if (car.Status == "Sold")
                 throw new ConflictException("Car is already sold");
 
+            var employee = await _employeeRepository.GetEmployeeByIdAsync(sale.EmployeeId);
+            if (employee == null)
+                throw new NotFoundException("Employee not found");
+
+            if (!employee.IsActive)
+                throw new ConflictException("Cannot create sale for inactive employee");
+
             var createdSale = await _saleRepository.CreateSaleAsync(sale);
             if (createdSale == null)
                 throw new ConflictException("Failed to create sale");
@@ -90,6 +101,14 @@ namespace backend.Services
             // Якщо продаж став Completed — продаємо авто
             if (sale.Status == "Completed" && existingSale.Status != "Completed")
             {
+                var employee = await _employeeRepository.GetEmployeeByIdAsync(sale.EmployeeId);
+                if (employee == null)
+                    throw new NotFoundException("Employee not found");
+
+                if (!employee.IsActive)
+                    throw new ConflictException("Cannot complete sale with inactive employee");
+
+
                 var car = await _carRepository.GetCarByIdAsync(sale.CarId);
                 if (car == null)
                     throw new NotFoundException("Car not found");

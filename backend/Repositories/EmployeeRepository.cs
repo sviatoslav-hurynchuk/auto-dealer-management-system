@@ -27,8 +27,32 @@ namespace backend.Repositories
                     FullName,
                     Position,
                     Phone,
-                    Email
+                    Email,
+                    IsActive
                 FROM Employees
+                ORDER BY id DESC;
+            ";
+
+            return await connection.QueryAsync<Employee>(sql);
+        }
+
+        // ==============================
+        // GET ALL ACTIVE
+        // ==============================
+        public async Task<IEnumerable<Employee>> GetAllActiveEmployeesAsync()
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            const string sql = @"
+                SELECT
+                    id,
+                    FullName,
+                    Position,
+                    Phone,
+                    Email,
+                    IsActive
+                FROM Employees
+                WHERE IsActive = 1
                 ORDER BY id DESC;
             ";
 
@@ -48,7 +72,8 @@ namespace backend.Repositories
                     FullName,
                     Position,
                     Phone,
-                    Email
+                    Email,
+                    IsActive
                 FROM Employees
                 WHERE id = @Id;
             ";
@@ -65,15 +90,16 @@ namespace backend.Repositories
 
             const string sql = @"
                 INSERT INTO Employees
-                (FullName, Position, Phone, Email)
+                (FullName, Position, Phone, Email, IsActive)
                 OUTPUT
                     INSERTED.id,
                     INSERTED.FullName,
                     INSERTED.Position,
                     INSERTED.Phone,
-                    INSERTED.Email
+                    INSERTED.Email,
+                    INSERTED.IsActive
                 VALUES
-                (@FullName, @Position, @Phone, @Email);
+                (@FullName, @Position, @Phone, @Email, 1);
             ";
 
             return await connection.QuerySingleOrDefaultAsync<Employee>(sql, employee);
@@ -92,13 +118,15 @@ namespace backend.Repositories
                     FullName = @FullName,
                     Position = @Position,
                     Phone = @Phone,
-                    Email = @Email
+                    Email = @Email,
+                    IsActive = @IsActive
                 OUTPUT
                     INSERTED.id,
                     INSERTED.FullName,
                     INSERTED.Position,
                     INSERTED.Phone,
-                    INSERTED.Email
+                    INSERTED.Email,
+                    INSERTED.IsActive
                 WHERE id = @Id;
             ";
 
@@ -106,13 +134,30 @@ namespace backend.Repositories
         }
 
         // ==============================
-        // DELETE
+        // HARD DELETE
         // ==============================
         public async Task<bool> DeleteEmployeeAsync(int id)
         {
             using var connection = new SqlConnection(_connectionString);
 
             const string sql = @"DELETE FROM Employees WHERE id = @Id";
+
+            var affected = await connection.ExecuteAsync(sql, new { Id = id });
+            return affected > 0;
+        }
+
+        // ==============================
+        // DEACTIVATE (SOFT DELETE)
+        // ==============================
+        public async Task<bool> DeactivateEmployeeAsync(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            const string sql = @"
+                UPDATE Employees
+                SET IsActive = 0
+                WHERE id = @Id AND IsActive = 1;
+            ";
 
             var affected = await connection.ExecuteAsync(sql, new { Id = id });
             return affected > 0;

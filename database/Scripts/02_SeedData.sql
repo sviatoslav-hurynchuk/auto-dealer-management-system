@@ -35,10 +35,10 @@ VALUES
     ('Petro Petrov', '0675558899', 'petro@mail.com', 'Lviv, Ukraine');
 
 -- Employees
-INSERT INTO dbo.Employees (FullName, Position, Phone, Email)
+INSERT INTO dbo.Employees (FullName, Position, Phone, Email, IsActive)
 VALUES
-    ('Oleg Koval', 'Sales Manager', '0633334444', 'oleg@dealership.com'),
-    ('Anna Melnyk', 'Service Manager', '0667778888', 'anna@dealership.com');
+    ('Oleg Koval', 'Sales Manager', '0633334444', 'oleg@dealership.com', 1),
+    ('Anna Melnyk', 'Service Manager', '0667778888', 'anna@dealership.com', 1);
 
 
 

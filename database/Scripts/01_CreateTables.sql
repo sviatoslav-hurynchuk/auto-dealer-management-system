@@ -31,7 +31,8 @@ CREATE TABLE dbo.Employees
     FullName VARCHAR(100) NOT NULL,
     Position VARCHAR(50) NULL,
     Phone VARCHAR(30) NULL,
-    Email VARCHAR(100) NULL
+    Email VARCHAR(100) NULL,
+    IsActive BIT NOT NULL DEFAULT 1
 );
 
 
