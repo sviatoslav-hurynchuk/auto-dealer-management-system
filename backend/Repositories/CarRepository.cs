@@ -17,32 +17,7 @@ namespace backend.Repositories
         // ==============================
         // GET ALL
         // ==============================
-        public async Task<IEnumerable<Car>> GetAllAsync()
-        {
-            using var connection = new SqlConnection(_connectionString);
-
-            const string sql = @"
-                SELECT 
-                    c.id,
-                    c.MakeID,
-                    c.Model,
-                    c.Year,
-                    c.Price,
-                    c.Color,
-                    c.VIN,
-                    c.SupplierID,
-                    c.Status
-                FROM Cars c
-                ORDER BY c.id DESC;
-            ";
-
-            return await connection.QueryAsync<Car>(sql);
-        }
-
-        // ==============================
-        // GET BY ID
-        // ==============================
-        public async Task<Car?> GetByIdAsync(int id)
+        public async Task<IEnumerable<Car>> GetAllCarsAsync()
         {
             using var connection = new SqlConnection(_connectionString);
 
@@ -56,6 +31,41 @@ namespace backend.Repositories
                     Color,
                     VIN,
                     SupplierID,
+                    Description,
+                    ImageUrl,
+                    Condition,
+                    Mileage,
+                    BodyType,
+                    Status
+                FROM Cars
+                ORDER BY id DESC;
+            ";
+
+            return await connection.QueryAsync<Car>(sql);
+        }
+
+        // ==============================
+        // GET BY ID
+        // ==============================
+        public async Task<Car?> GetCarByIdAsync(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            const string sql = @"
+                SELECT 
+                    id,
+                    MakeID,
+                    Model,
+                    Year,
+                    Price,
+                    Color,
+                    VIN,
+                    SupplierID,
+                    Description,
+                    ImageUrl,
+                    Condition,
+                    Mileage,
+                    BodyType,
                     Status
                 FROM Cars
                 WHERE id = @Id;
@@ -67,13 +77,13 @@ namespace backend.Repositories
         // ==============================
         // CREATE
         // ==============================
-        public async Task<Car?> CreateAsync(Car car)
+        public async Task<Car?> CreateCarAsync(Car car)
         {
             using var connection = new SqlConnection(_connectionString);
 
             const string sql = @"
                 INSERT INTO Cars
-                (MakeID, Model, Year, Price, Color, VIN, SupplierID, Status)
+                (MakeID, Model, Year, Price, Color, VIN, SupplierID, Description, ImageUrl, Condition, Mileage, BodyType, Status)
                 OUTPUT 
                     INSERTED.id,
                     INSERTED.MakeID,
@@ -83,9 +93,14 @@ namespace backend.Repositories
                     INSERTED.Color,
                     INSERTED.VIN,
                     INSERTED.SupplierID,
+                    INSERTED.Description,
+                    INSERTED.ImageUrl,
+                    INSERTED.Condition,
+                    INSERTED.Mileage,
+                    INSERTED.BodyType,
                     INSERTED.Status
                 VALUES
-                (@MakeId, @Model, @Year, @Price, @Color, @Vin, @SupplierId, @Status);
+                (@MakeId, @Model, @Year, @Price, @Color, @Vin, @SupplierId, @Description, @ImageUrl, @Condition, @Mileage, @BodyType, @Status);
             ";
 
             return await connection.QuerySingleOrDefaultAsync<Car>(sql, car);
@@ -94,7 +109,7 @@ namespace backend.Repositories
         // ==============================
         // UPDATE
         // ==============================
-        public async Task<Car?> UpdateAsync(Car car)
+        public async Task<Car?> UpdateCarAsync(Car car)
         {
             using var connection = new SqlConnection(_connectionString);
 
@@ -108,6 +123,11 @@ namespace backend.Repositories
                     Color = @Color,
                     VIN = @Vin,
                     SupplierID = @SupplierId,
+                    Description = @Description,
+                    ImageUrl = @ImageUrl,
+                    Condition = @Condition,
+                    Mileage = @Mileage,
+                    BodyType = @BodyType,
                     Status = @Status
                 OUTPUT 
                     INSERTED.id,
@@ -118,6 +138,11 @@ namespace backend.Repositories
                     INSERTED.Color,
                     INSERTED.VIN,
                     INSERTED.SupplierID,
+                    INSERTED.Description,
+                    INSERTED.ImageUrl,
+                    INSERTED.Condition,
+                    INSERTED.Mileage,
+                    INSERTED.BodyType,
                     INSERTED.Status
                 WHERE id = @Id;
             ";
@@ -128,7 +153,7 @@ namespace backend.Repositories
         // ==============================
         // DELETE
         // ==============================
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteCarAsync(int id)
         {
             using var connection = new SqlConnection(_connectionString);
 
@@ -136,6 +161,14 @@ namespace backend.Repositories
 
             var affectedRows = await connection.ExecuteAsync(sql, new { Id = id });
             return affectedRows > 0;
+        }
+
+        public async Task<bool> ExistsByMakeIdAsync(int makeId)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            const string sql = "SELECT 1 FROM Cars WHERE MakeId = @MakeId";
+            var result = await connection.QueryFirstOrDefaultAsync<int?>(sql, new { MakeId = makeId });
+            return result.HasValue;
         }
     }
 }

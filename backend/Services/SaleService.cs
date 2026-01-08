@@ -1,0 +1,155 @@
+﻿using backend.Models;
+using backend.Repositories.Interfaces;
+using backend.Exceptions;
+
+namespace backend.Services
+{
+    public class SaleService
+    {
+        private readonly ISaleRepository _saleRepository;
+        private readonly ICarRepository _carRepository;
+
+        public SaleService(
+            ISaleRepository saleRepository,
+            ICarRepository carRepository)
+        {
+            _saleRepository = saleRepository;
+            _carRepository = carRepository;
+        }
+
+        // ==============================
+        // GET ALL
+        // ==============================
+        public async Task<IEnumerable<Sale>> GetAllSalesAsync()
+        {
+            return await _saleRepository.GetAllSalesAsync();
+        }
+
+        // ==============================
+        // GET BY ID
+        // ==============================
+        public async Task<Sale> GetSaleByIdAsync(int id)
+        {
+            if (id <= 0)
+                throw new ValidationException("Sale id must be greater than zero");
+
+            var sale = await _saleRepository.GetSaleByIdAsync(id);
+            if (sale == null)
+                throw new NotFoundException($"Sale with id {id} not found");
+
+            return sale;
+        }
+
+        // ==============================
+        // CREATE
+        // ==============================
+        public async Task<Sale> CreateSaleAsync(Sale sale)
+        {
+            ValidateSale(sale);
+
+            var car = await _carRepository.GetCarByIdAsync(sale.CarId);
+            if (car == null)
+                throw new NotFoundException("Car not found");
+
+            if (car.Status == "Sold")
+                throw new ConflictException("Car is already sold");
+
+            var createdSale = await _saleRepository.CreateSaleAsync(sale);
+            if (createdSale == null)
+                throw new ConflictException("Failed to create sale");
+
+
+            // TODO: This operation must be wrapped in a transaction
+            if (sale.Status == "Completed")
+            {
+                car.Status = "Sold";
+                var updatedCar = await _carRepository.UpdateCarAsync(car) ?? throw new ConflictException("Failed to update car status after sale creation");
+            }
+
+            return createdSale;
+        }
+
+        // ==============================
+        // UPDATE
+        // ==============================
+        public async Task<Sale> UpdateSaleAsync(Sale sale)
+        {
+            if (sale.Id <= 0)
+                throw new ValidationException("Sale id must be specified for update");
+
+            ValidateSale(sale);
+
+            var existingSale = await _saleRepository.GetSaleByIdAsync(sale.Id);
+            if (existingSale == null)
+                throw new NotFoundException($"Sale with id {sale.Id} not found");
+
+            var updatedSale = await _saleRepository.UpdateSaleAsync(sale);
+            if (updatedSale == null)
+                throw new ConflictException("Failed to update sale");
+
+            // Якщо продаж став Completed — продаємо авто
+            if (sale.Status == "Completed" && existingSale.Status != "Completed")
+            {
+                var car = await _carRepository.GetCarByIdAsync(sale.CarId);
+                if (car == null)
+                    throw new NotFoundException("Car not found");
+
+                if (car.Status == "Sold")
+                    throw new ConflictException("Car is already sold");
+
+                car.Status = "Sold";
+
+                // TODO: This operation must be wrapped in a transaction
+                var updatedCar = await _carRepository.UpdateCarAsync(car) ?? throw new ConflictException("Failed to update car status after sale completion");
+            }
+
+            return updatedSale;
+        }
+
+        // ==============================
+        // DELETE
+        // ==============================
+        public async Task DeleteSaleAsync(int id)
+        {
+            if (id <= 0)
+                throw new ValidationException("Sale id must be greater than zero");
+
+            var sale = await _saleRepository.GetSaleByIdAsync(id);
+            if (sale == null)
+                throw new NotFoundException($"Sale with id {id} not found");
+
+            var deleted = await _saleRepository.DeleteSaleAsync(id);
+            if (!deleted)
+                throw new ConflictException("Failed to delete sale");
+        }
+
+        // ==============================
+        // VALIDATION
+        // ==============================
+        private static void ValidateSale(Sale sale)
+        {
+            if (sale == null)
+                throw new ValidationException("Sale data is required");
+
+            if (sale.CarId <= 0)
+                throw new ValidationException("CarId is required");
+
+            if (sale.CustomerId <= 0)
+                throw new ValidationException("CustomerId is required");
+
+            if (sale.EmployeeId <= 0)
+                throw new ValidationException("EmployeeId is required");
+
+            if (sale.FinalPrice < 0)
+                throw new ValidationException("FinalPrice cannot be negative");
+
+            if (string.IsNullOrWhiteSpace(sale.Status))
+                throw new ValidationException("Status is required");
+
+            if (sale.Status != "Pending" &&
+                sale.Status != "Completed" &&
+                sale.Status != "Cancelled")
+                throw new ValidationException("Invalid sale status");
+        }
+    }
+}

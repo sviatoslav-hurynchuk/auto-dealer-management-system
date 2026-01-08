@@ -39,16 +39,23 @@ CREATE TABLE dbo.Cars
 (
     id INT IDENTITY PRIMARY KEY,
     MakeID INT NOT NULL,
-    Model VARCHAR(50) NOT NULL,
+    Model NVARCHAR(50) NOT NULL,
     Year INT NOT NULL,
     Price DECIMAL(12,2) NOT NULL,
-    Color VARCHAR(30) NULL,
-    VIN VARCHAR(50) UNIQUE NOT NULL,
+    Color NVARCHAR(30) NULL,
+    VIN NVARCHAR(50) UNIQUE NOT NULL,
     SupplierID INT NULL,
-    Status VARCHAR(50) NOT NULL DEFAULT 'In stock',
+    Status NVARCHAR(50) NOT NULL DEFAULT 'In stock',
+    Description NVARCHAR(500) NULL,
+    ImageUrl NVARCHAR(200) NULL,
+    Condition NVARCHAR(50) NULL,
+    Mileage INT NULL,
+    BodyType NVARCHAR(50) NULL,
+
     CONSTRAINT FK_Cars_Makes FOREIGN KEY (MakeID) REFERENCES dbo.Makes(id),
     CONSTRAINT FK_Cars_Suppliers FOREIGN KEY (SupplierID) REFERENCES dbo.Suppliers(id)
 );
+
 
 
 CREATE TABLE dbo.Orders
@@ -72,6 +79,7 @@ CREATE TABLE dbo.Sales
     EmployeeID INT NOT NULL,
     SaleDate DATETIME NOT NULL,
     FinalPrice DECIMAL(12,2) NOT NULL,
+    Status VARCHAR(50) NOT NULL DEFAULT 'Completed',
     CONSTRAINT FK_Sales_Cars FOREIGN KEY (CarID) REFERENCES dbo.Cars(id),
     CONSTRAINT FK_Sales_Customers FOREIGN KEY (CustomerID) REFERENCES dbo.Customers(id),
     CONSTRAINT FK_Sales_Employees FOREIGN KEY (EmployeeID) REFERENCES dbo.Employees(id)
