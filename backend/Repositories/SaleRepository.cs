@@ -141,5 +141,23 @@ namespace backend.Repositories
             return result.HasValue;
         }
 
+        public async Task<bool> ExistsByEmployeeIdAsync(int employeeId)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            const string sql = @"
+        SELECT 1
+        FROM Sales
+        WHERE EmployeeId = @EmployeeId
+    ";
+
+            var result = await connection.QueryFirstOrDefaultAsync<int?>(
+                sql,
+                new { EmployeeId = employeeId }
+            );
+
+            return result.HasValue;
+        }
+
     }
 }
