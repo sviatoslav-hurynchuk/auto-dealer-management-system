@@ -124,3 +124,5 @@ CREATE TABLE dbo.ServiceRequests
 
     CONSTRAINT FK_ServiceRequests_Cars FOREIGN KEY (CarID) REFERENCES dbo.Cars(id)
 );
+CREATE INDEX IX_ServiceRequests_CarID ON dbo.ServiceRequests(CarID);
+
