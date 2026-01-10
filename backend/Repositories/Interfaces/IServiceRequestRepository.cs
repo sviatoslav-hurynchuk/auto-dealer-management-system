@@ -4,12 +4,12 @@ namespace backend.Repositories.Interfaces
 {
     public interface IServiceRequestRepository
     {
-        Task<IEnumerable<ServiceRequest>> GetAllAsync();
-        Task<ServiceRequest?> GetByIdAsync(int id);
-        Task<IEnumerable<ServiceRequest>> GetByCarIdAsync(int carId);
+        Task<IEnumerable<ServiceRequest>> GetAllRequestsAsync();
+        Task<ServiceRequest?> GetAllRequestsByIdAsync(int id);
+        Task<IEnumerable<ServiceRequest>> GetRequestsByCarIdAsync(int carId);
 
-        Task<ServiceRequest?> CreateAsync(ServiceRequest request);
-        Task<ServiceRequest?> UpdateAsync(ServiceRequest request);
-        Task<bool> DeleteAsync(int id);
+        Task<ServiceRequest?> CreateRequestAsync(ServiceRequest request);
+        Task<ServiceRequest?> UpdateRequestAsync(ServiceRequest request);
+        Task<bool> DeleteRequestAsync(int id);
     }
 }

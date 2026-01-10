@@ -17,7 +17,7 @@ namespace backend.Repositories
         // ==============================
         // GET ALL
         // ==============================
-        public async Task<IEnumerable<ServiceRequest>> GetAllAsync()
+        public async Task<IEnumerable<ServiceRequest>> GetAllRequestsAsync()
         {
             using var connection = new SqlConnection(_connectionString);
 
@@ -38,7 +38,7 @@ namespace backend.Repositories
         // ==============================
         // GET BY ID
         // ==============================
-        public async Task<ServiceRequest?> GetByIdAsync(int id)
+        public async Task<ServiceRequest?> GetAllRequestsByIdAsync(int id)
         {
             using var connection = new SqlConnection(_connectionString);
 
@@ -62,7 +62,7 @@ namespace backend.Repositories
         // ==============================
         // GET BY CAR ID
         // ==============================
-        public async Task<IEnumerable<ServiceRequest>> GetByCarIdAsync(int carId)
+        public async Task<IEnumerable<ServiceRequest>> GetRequestsByCarIdAsync(int carId)
         {
             using var connection = new SqlConnection(_connectionString);
 
@@ -87,7 +87,7 @@ namespace backend.Repositories
         // ==============================
         // CREATE
         // ==============================
-        public async Task<ServiceRequest?> CreateAsync(ServiceRequest request)
+        public async Task<ServiceRequest?> CreateRequestAsync(ServiceRequest request)
         {
             using var connection = new SqlConnection(_connectionString);
 
@@ -110,7 +110,7 @@ namespace backend.Repositories
         // ==============================
         // UPDATE
         // ==============================
-        public async Task<ServiceRequest?> UpdateAsync(ServiceRequest request)
+        public async Task<ServiceRequest?> UpdateRequestAsync(ServiceRequest request)
         {
             using var connection = new SqlConnection(_connectionString);
 
@@ -135,7 +135,7 @@ namespace backend.Repositories
         // ==============================
         // DELETE
         // ==============================
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteRequestAsync(int id)
         {
             using var connection = new SqlConnection(_connectionString);
 

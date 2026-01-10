@@ -42,7 +42,7 @@ namespace backend
             builder.Services.AddScoped<ISupplierRepository, SupplierRepository>(p => new SupplierRepository(connectionString!));
             builder.Services.AddScoped<IOrderRepository, OrderRepository>(p => new OrderRepository(connectionString!));
             builder.Services.AddScoped<ISaleRepository, SaleRepository>(p => new SaleRepository(connectionString!));
-           // builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>(p => new ServiceRequestRepository(connectionString!));
+            builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>(p => new ServiceRequestRepository(connectionString!));
 
 
             builder.Services.AddScoped<CarService>();
@@ -52,7 +52,7 @@ namespace backend
             builder.Services.AddScoped<SupplierService>();
             builder.Services.AddScoped<OrderService>();
             builder.Services.AddScoped<SaleService>();
-            //builder.Services.AddScoped<ServiceRequestService>();
+            builder.Services.AddScoped<ServiceRequestService>();
 
           
             builder.Services.AddScoped<CarType>();

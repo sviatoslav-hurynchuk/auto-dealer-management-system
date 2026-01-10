@@ -20,20 +20,20 @@ namespace backend.Services
         // ==============================
         // GET ALL
         // ==============================
-        public async Task<IEnumerable<ServiceRequest>> GetAllAsync()
+        public async Task<IEnumerable<ServiceRequest>> GetAllRequestsAsync()
         {
-            return await _serviceRequestRepository.GetAllAsync();
+            return await _serviceRequestRepository.GetAllRequestsAsync();
         }
 
         // ==============================
         // GET BY ID
         // ==============================
-        public async Task<ServiceRequest> GetByIdAsync(int id)
+        public async Task<ServiceRequest> GetAllRequestsByIdAsync(int id)
         {
             if (id <= 0)
                 throw new ValidationException("ServiceRequest id must be greater than zero");
 
-            var request = await _serviceRequestRepository.GetByIdAsync(id);
+            var request = await _serviceRequestRepository.GetAllRequestsByIdAsync(id);
             if (request == null)
                 throw new NotFoundException($"ServiceRequest with id {id} not found");
 
@@ -43,7 +43,7 @@ namespace backend.Services
         // ==============================
         // GET BY CAR
         // ==============================
-        public async Task<IEnumerable<ServiceRequest>> GetByCarIdAsync(int carId)
+        public async Task<IEnumerable<ServiceRequest>> GetRequestsByCarIdAsync(int carId)
         {
             if (carId <= 0)
                 throw new ValidationException("CarId must be greater than zero");
@@ -52,13 +52,13 @@ namespace backend.Services
             if (car == null)
                 throw new NotFoundException("Car not found");
 
-            return await _serviceRequestRepository.GetByCarIdAsync(carId);
+            return await _serviceRequestRepository.GetRequestsByCarIdAsync(carId);
         }
 
         // ==============================
         // CREATE
         // ==============================
-        public async Task<ServiceRequest> CreateAsync(ServiceRequest request)
+        public async Task<ServiceRequest> CreateRequestAsync(ServiceRequest request)
         {
             Validate(request);
 
@@ -66,7 +66,7 @@ namespace backend.Services
             if (car == null)
                 throw new NotFoundException("Car not found");
 
-            var created = await _serviceRequestRepository.CreateAsync(request);
+            var created = await _serviceRequestRepository.CreateRequestAsync(request);
             if (created == null)
                 throw new ConflictException("Failed to create service request");
 
@@ -76,18 +76,18 @@ namespace backend.Services
         // ==============================
         // UPDATE
         // ==============================
-        public async Task<ServiceRequest> UpdateAsync(ServiceRequest request)
+        public async Task<ServiceRequest> UpdateRequestAsync(ServiceRequest request)
         {
             if (request.Id <= 0)
                 throw new ValidationException("ServiceRequest id is required");
 
             Validate(request);
 
-            var existing = await _serviceRequestRepository.GetByIdAsync(request.Id);
+            var existing = await _serviceRequestRepository.GetAllRequestsByIdAsync(request.Id);
             if (existing == null)
                 throw new NotFoundException($"ServiceRequest with id {request.Id} not found");
 
-            var updated = await _serviceRequestRepository.UpdateAsync(request);
+            var updated = await _serviceRequestRepository.UpdateRequestAsync(request);
             if (updated == null)
                 throw new ConflictException("Failed to update service request");
 
@@ -97,16 +97,16 @@ namespace backend.Services
         // ==============================
         // DELETE
         // ==============================
-        public async Task DeleteAsync(int id)
+        public async Task DeleteRequestAsync(int id)
         {
             if (id <= 0)
                 throw new ValidationException("ServiceRequest id must be greater than zero");
 
-            var existing = await _serviceRequestRepository.GetByIdAsync(id);
+            var existing = await _serviceRequestRepository.GetAllRequestsByIdAsync(id);
             if (existing == null)
                 throw new NotFoundException($"ServiceRequest with id {id} not found");
 
-            var deleted = await _serviceRequestRepository.DeleteAsync(id);
+            var deleted = await _serviceRequestRepository.DeleteRequestAsync(id);
             if (!deleted)
                 throw new ConflictException("Failed to delete service request");
         }
