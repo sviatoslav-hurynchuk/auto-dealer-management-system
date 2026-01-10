@@ -33,7 +33,7 @@ namespace backend.Services
             if (id <= 0)
                 throw new ValidationException("ServiceRequest id must be greater than zero");
 
-            var request = await _serviceRequestRepository.GetRequestByIdAsync(id);
+            var request = await _serviceRequestRepository.GetRequestByIdAsync (id);
             if (request == null)
                 throw new NotFoundException($"ServiceRequest with id {id} not found");
 
@@ -102,14 +102,12 @@ namespace backend.Services
             if (id <= 0)
                 throw new ValidationException("ServiceRequest id must be greater than zero");
 
-            var existing = await _serviceRequestRepository.GetRequestByIdAsync(id);
-            if (existing == null)
-                throw new NotFoundException($"ServiceRequest with id {id} not found");
-
             var deleted = await _serviceRequestRepository.DeleteRequestAsync(id);
+
             if (!deleted)
-                throw new ConflictException("Failed to delete service request");
+                throw new NotFoundException($"ServiceRequest with id {id} not found");
         }
+
 
         // ==============================
         // VALIDATION
