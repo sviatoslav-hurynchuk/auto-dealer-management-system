@@ -62,7 +62,7 @@ namespace backend
             builder.Services.AddScoped<SupplierType>();
             builder.Services.AddScoped<OrderType>();
             builder.Services.AddScoped<SaleType>();
-            //builder.Services.AddScoped<ServiceRequestType>();
+            builder.Services.AddScoped<ServiceRequestType>();
 
             builder.Services.AddScoped<RootQuery>();
             builder.Services.AddScoped<RootMutation>();
@@ -75,36 +75,6 @@ namespace backend
                 options.AddGraphTypes(typeof(RootQuery).Assembly);
             });
 
-            // ==============================
-            // JWT
-            // ==============================
-            /*var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
-                ?? throw new InvalidOperationException("JWT_SECRET_KEY is not set.");
-            var expiryMinutesRaw = Environment.GetEnvironmentVariable("JWT_EXPIRY_MINS")
-                ?? throw new InvalidOperationException("JWT_EXPIRY_MINS is not set.");
-
-            if (!int.TryParse(expiryMinutesRaw, out var expiryMinutes))
-                throw new InvalidOperationException("JWT_EXPIRY_MINS must be int");
-
-            builder.Services.AddSingleton(new JwtService(jwtKey!, expiryMinutes));
-
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtKey!))
-                };
-            });
-            */
             // ==============================
             // CORS
             // ==============================
