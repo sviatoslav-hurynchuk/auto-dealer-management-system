@@ -11,7 +11,8 @@ namespace backend.GraphQL.Queries
             MakeQuery makeQuery, 
             SupplierQuery supplierQuery, 
             EmployeeQuery employeeQuery,
-            CustomerQuery customerQuery)
+            CustomerQuery customerQuery,
+            ServiceRequestQuery serviceRequestQuery)
         {
             Name = "Query";
 
@@ -21,7 +22,8 @@ namespace backend.GraphQL.Queries
                 makeQuery, 
                 supplierQuery, 
                 employeeQuery, 
-                customerQuery };
+                customerQuery, 
+                serviceRequestQuery };
 
             foreach (var query in queries)
             {
