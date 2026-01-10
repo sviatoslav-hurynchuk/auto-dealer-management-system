@@ -11,5 +11,6 @@ namespace backend.Repositories.Interfaces
         Task<bool> DeleteSaleAsync(int id);
         Task<bool> ExistsByCarIdAsync(int carId);
         Task<bool> ExistsByEmployeeIdAsync(int employeeId);
+        Task<bool> ExistsByCustomerIdAsync(int customerId);
     }
 }

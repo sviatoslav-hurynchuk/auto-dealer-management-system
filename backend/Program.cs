@@ -37,7 +37,7 @@ namespace backend
 
             builder.Services.AddScoped<ICarRepository, CarRepository>(p => new CarRepository(connectionString!));
             builder.Services.AddScoped<IMakeRepository, MakeRepository>(p => new MakeRepository(connectionString!));
-            //builder.Services.AddScoped<ICustomerRepository, CustomerRepository>(p => new CustomerRepository(connectionString!));
+            builder.Services.AddScoped<ICustomerRepository, CustomerRepository>(p => new CustomerRepository(connectionString!));
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>(p => new EmployeeRepository(connectionString!));
             builder.Services.AddScoped<ISupplierRepository, SupplierRepository>(p => new SupplierRepository(connectionString!));
             builder.Services.AddScoped<IOrderRepository, OrderRepository>(p => new OrderRepository(connectionString!));
@@ -47,7 +47,7 @@ namespace backend
 
             builder.Services.AddScoped<CarService>();
             builder.Services.AddScoped<MakeService>();
-            //builder.Services.AddScoped<CustomerService>();
+            builder.Services.AddScoped<CustomerService>();
             builder.Services.AddScoped<EmployeeService>();
             builder.Services.AddScoped<SupplierService>();
             builder.Services.AddScoped<OrderService>();
@@ -57,7 +57,7 @@ namespace backend
           
             builder.Services.AddScoped<CarType>();
             builder.Services.AddScoped<MakeType>();
-            //builder.Services.AddScoped<CustomerType>();
+            builder.Services.AddScoped<CustomerType>();
             builder.Services.AddScoped<EmployeeType>();
             builder.Services.AddScoped<SupplierType>();
             builder.Services.AddScoped<OrderType>();

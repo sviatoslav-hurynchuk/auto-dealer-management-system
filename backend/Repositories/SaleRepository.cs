@@ -159,5 +159,20 @@ namespace backend.Repositories
             return result.HasValue;
         }
 
+        public async Task<bool> ExistsByCustomerIdAsync(int customerId)
+        {
+            const string sql = """
+        SELECT 1
+        FROM Sales
+        WHERE CustomerId = @CustomerId
+    """;
+
+            using var connection = new SqlConnection(_connectionString);
+            return await connection.QueryFirstOrDefaultAsync<int?>(
+                sql,
+                new { CustomerId = customerId }
+            ) != null;
+        }
+
     }
 }
