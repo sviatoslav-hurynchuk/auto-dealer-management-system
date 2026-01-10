@@ -38,7 +38,7 @@ namespace backend.Repositories
         // ==============================
         // GET BY ID
         // ==============================
-        public async Task<ServiceRequest?> GetAllRequestsByIdAsync(int id)
+        public async Task<ServiceRequest?> GetRequestByIdAsync(int id)
         {
             using var connection = new SqlConnection(_connectionString);
 

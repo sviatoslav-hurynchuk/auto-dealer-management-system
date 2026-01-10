@@ -40,7 +40,7 @@ namespace backend.GraphQL.Mutations
                 .Argument<StringGraphType>("status")
                 .ResolveAsync(async context =>
                 {
-                    var request = await serviceRequestService.GetAllRequestsByIdAsync(
+                    var request = await serviceRequestService.GetRequestByIdAsync(
                         context.GetArgument<int>("id")
                     );
 

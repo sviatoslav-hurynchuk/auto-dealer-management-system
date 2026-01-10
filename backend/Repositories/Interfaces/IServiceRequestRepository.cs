@@ -5,7 +5,7 @@ namespace backend.Repositories.Interfaces
     public interface IServiceRequestRepository
     {
         Task<IEnumerable<ServiceRequest>> GetAllRequestsAsync();
-        Task<ServiceRequest?> GetAllRequestsByIdAsync(int id);
+        Task<ServiceRequest?> GetRequestByIdAsync(int id);
         Task<IEnumerable<ServiceRequest>> GetRequestsByCarIdAsync(int carId);
 
         Task<ServiceRequest?> CreateRequestAsync(ServiceRequest request);

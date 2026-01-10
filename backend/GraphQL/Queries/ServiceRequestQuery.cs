@@ -19,7 +19,7 @@ namespace backend.GraphQL.Queries
                 .ResolveAsync(async context =>
                 {
                     var id = context.GetArgument<int>("id");
-                    return await serviceRequestService.GetAllRequestsByIdAsync(id);
+                    return await serviceRequestService.GetRequestByIdAsync(id);
                 });
 
             // ==============================

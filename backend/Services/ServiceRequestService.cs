@@ -28,12 +28,12 @@ namespace backend.Services
         // ==============================
         // GET BY ID
         // ==============================
-        public async Task<ServiceRequest> GetAllRequestsByIdAsync(int id)
+        public async Task<ServiceRequest> GetRequestByIdAsync(int id)
         {
             if (id <= 0)
                 throw new ValidationException("ServiceRequest id must be greater than zero");
 
-            var request = await _serviceRequestRepository.GetAllRequestsByIdAsync(id);
+            var request = await _serviceRequestRepository.GetRequestByIdAsync(id);
             if (request == null)
                 throw new NotFoundException($"ServiceRequest with id {id} not found");
 
@@ -83,7 +83,7 @@ namespace backend.Services
 
             Validate(request);
 
-            var existing = await _serviceRequestRepository.GetAllRequestsByIdAsync(request.Id);
+            var existing = await _serviceRequestRepository.GetRequestByIdAsync(request.Id);
             if (existing == null)
                 throw new NotFoundException($"ServiceRequest with id {request.Id} not found");
 
@@ -102,7 +102,7 @@ namespace backend.Services
             if (id <= 0)
                 throw new ValidationException("ServiceRequest id must be greater than zero");
 
-            var existing = await _serviceRequestRepository.GetAllRequestsByIdAsync(id);
+            var existing = await _serviceRequestRepository.GetRequestByIdAsync(id);
             if (existing == null)
                 throw new NotFoundException($"ServiceRequest with id {id} not found");
 
