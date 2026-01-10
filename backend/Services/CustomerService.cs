@@ -1,6 +1,7 @@
 ﻿using backend.Exceptions;
 using backend.Models;
 using backend.Repositories.Interfaces;
+using Microsoft.Data.SqlClient;
 
 namespace backend.Services
 {
@@ -17,7 +18,6 @@ namespace backend.Services
             _saleRepository = saleRepository;
         }
 
-
         public async Task<IEnumerable<Customer>> GetAllCustomersAsync()
             => await _customerRepository.GetAllCustomersAsync();
 
@@ -33,6 +33,9 @@ namespace backend.Services
             return customer;
         }
 
+        // ==============================
+        // CREATE
+        // ==============================
         public async Task<Customer> CreateCustomerAsync(Customer customer)
         {
             ValidateCustomer(customer);
@@ -44,9 +47,23 @@ namespace backend.Services
                     throw new ConflictException("Customer with this email already exists.");
             }
 
-            return await _customerRepository.CreateCustomerAsync(customer);
+            try
+            {
+                return await _customerRepository.CreateCustomerAsync(customer);
+            }
+            catch (ConflictException)
+            {
+                throw;
+            }
+            catch (Exception ex) when (IsUniqueViolation(ex))
+            {
+                throw new ConflictException("Customer with this email already exists.");
+            }
         }
 
+        // ==============================
+        // UPDATE
+        // ==============================
         public async Task<Customer> UpdateCustomerAsync(Customer customer)
         {
             if (customer.Id <= 0)
@@ -65,9 +82,23 @@ namespace backend.Services
                     throw new ConflictException("Another customer with this email already exists.");
             }
 
-            return await _customerRepository.UpdateCustomerAsync(customer);
+            try
+            {
+                return await _customerRepository.UpdateCustomerAsync(customer);
+            }
+            catch (ConflictException)
+            {
+                throw;
+            }
+            catch (Exception ex) when (IsUniqueViolation(ex))
+            {
+                throw new ConflictException("Another customer with this email already exists.");
+            }
         }
 
+        // ==============================
+        // DELETE
+        // ==============================
         public async Task DeleteCustomerAsync(int id)
         {
             if (id <= 0)
@@ -79,16 +110,42 @@ namespace backend.Services
 
             var hasSales = await _saleRepository.ExistsByCustomerIdAsync(id);
             if (hasSales)
-                throw new ConflictException(
-                    "Cannot delete customer with existing sales."
-                );
+                throw new ConflictException("Cannot delete customer with existing sales.");
 
-            var deleted = await _customerRepository.DeleteCustomerAsync(id);
-            if (!deleted)
-                throw new ConflictException("Failed to delete customer.");
+            try
+            {
+                var deleted = await _customerRepository.DeleteCustomerAsync(id);
+                if (!deleted)
+                    throw new ConflictException("Failed to delete customer.");
+            }
+            catch (ConflictException)
+            {
+                throw;
+            }
+            catch (Exception ex) when (IsForeignKeyViolation(ex))
+            {
+                throw new ConflictException("Cannot delete customer because related records exist (e.g., sales).");
+            }
+        }
+
+        // ==============================
+        // SQL FOREIGN KEY VIOLATION DETECTOR
+        // ==============================
+        private static bool IsForeignKeyViolation(Exception ex)
+        {
+            if (ex is SqlException sqlEx)
+                return sqlEx.Number == 547; // Foreign key violation in SQL Server
+
+            if (ex.InnerException != null)
+                return IsForeignKeyViolation(ex.InnerException);
+
+            return false;
         }
 
 
+        // ==============================
+        // VALIDATION
+        // ==============================
         private static void ValidateCustomer(Customer customer)
         {
             if (customer == null)
@@ -105,6 +162,20 @@ namespace backend.Services
 
             if (customer.Phone?.Length > 20)
                 throw new ValidationException("Phone is too long.");
+        }
+
+        // ==============================
+        // SQL UNIQUE VIOLATION DETECTOR
+        // ==============================
+        private static bool IsUniqueViolation(Exception ex)
+        {
+            if (ex is SqlException sqlEx)
+                return sqlEx.Number == 2627 || sqlEx.Number == 2601;
+
+            if (ex.InnerException != null)
+                return IsUniqueViolation(ex.InnerException);
+
+            return false;
         }
     }
 }
