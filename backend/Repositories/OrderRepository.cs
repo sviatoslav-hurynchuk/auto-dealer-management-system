@@ -1,4 +1,4 @@
-﻿using backend.Models;
+using backend.Models;
 using backend.Repositories.Interfaces;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -33,6 +33,11 @@ namespace backend.Repositories
             return await connection.QueryFirstOrDefaultAsync<Order>(sql, new { Id = id });
         }
 
+        /// <summary>
+        /// Inserts a new order into the Orders table and returns the inserted record.
+        /// </summary>
+        /// <param name="order">Order whose SupplierId, CarId, OrderDate, and Status will be persisted.</param>
+        /// <returns>The inserted Order including its generated Id, or null if the insertion failed.</returns>
         public async Task<Order?> CreateOrderAsync(Order order)
         {
             const string sql = """
@@ -46,6 +51,11 @@ namespace backend.Repositories
             return await connection.QueryFirstOrDefaultAsync<Order>(sql, order);
         }
 
+        /// <summary>
+        /// Update an existing order in the database and return the updated record.
+        /// </summary>
+        /// <param name="order">Order object containing the Id of the record to update and the new field values.</param>
+        /// <returns>The updated <see cref="Order"/> if the record existed and was updated, or null if no matching record was found.</returns>
         public async Task<Order?> UpdateOrderAsync(Order order)
         {
             const string sql = """

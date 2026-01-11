@@ -1,4 +1,4 @@
-﻿using backend.Exceptions;
+using backend.Exceptions;
 using backend.Models;
 using backend.Repositories.Interfaces;
 
@@ -125,7 +125,19 @@ namespace backend.Services
 
         // ==============================
         // VALIDATION
-        // ==============================
+        /// <summary>
+        /// Validates required fields of an <c>Order</c> and throws on invalid input.
+        /// </summary>
+        /// <param name="order">The order to validate.</param>
+        /// <exception cref="ValidationException">
+        /// Thrown when:
+        /// - <paramref name="order"/> is null;
+        /// - <see cref="Order.SupplierId"/> is less than or equal to 0;
+        /// - <see cref="Order.CarId"/> is less than or equal to 0;
+        /// - <see cref="Order.OrderDate"/> is the default value;
+        /// - <see cref="Order.Status"/> is null, empty, or white-space;
+        /// - <see cref="Order.Status"/> is not one of "Pending", "Completed", or "Cancelled".
+        /// </exception>
         private static void ValidateOrder(Order order)
         {
             if (order == null)

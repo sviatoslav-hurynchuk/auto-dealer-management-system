@@ -1,4 +1,4 @@
-﻿using backend.GraphQL.Types;
+using backend.GraphQL.Types;
 using backend.Models;
 using backend.Services;
 using GraphQL;
@@ -8,6 +8,10 @@ namespace backend.GraphQL.Mutations
 {
     public class OrderMutation : ObjectGraphType
     {
+        /// <summary>
+        /// Registers GraphQL mutations for creating, updating, and deleting orders.
+        /// </summary>
+        /// <param name="orderService">Service used to persist and retrieve Order entities for the registered mutations.</param>
         public OrderMutation(OrderService orderService)
         {
             Name = "OrderMutations";

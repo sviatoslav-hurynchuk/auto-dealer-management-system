@@ -1,4 +1,4 @@
-﻿using backend.GraphQL.Types;
+using backend.GraphQL.Types;
 using backend.Models;
 using backend.Services;
 using GraphQL;
@@ -8,6 +8,14 @@ namespace backend.GraphQL.Mutations
 {
     public class CarMutation : ObjectGraphType
     {
+        /// <summary>
+        /// Registers GraphQL mutation fields for creating, updating, and deleting car entities.
+        /// </summary>
+        /// <remarks>
+        /// - createCar: accepts a make name and car properties, creates a new Car and delegates creation to the service handling make association.
+        /// - updateCar: loads an existing Car by id, applies any provided fields, and updates the Car via the service.
+        /// - deleteCar: deletes a Car by id and returns a boolean confirmation.
+        /// </remarks>
         public CarMutation(CarService carService)
         {
             Name = "CarMutations";

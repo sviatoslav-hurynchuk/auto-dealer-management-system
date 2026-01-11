@@ -1,4 +1,4 @@
-﻿using backend.Exceptions;
+using backend.Exceptions;
 using backend.Models;
 using backend.Repositories;
 using backend.Repositories.Interfaces;
@@ -11,6 +11,13 @@ namespace backend.Services
         private readonly ISaleRepository _saleRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IMakeRepository _makeRepository;
+        /// <summary>
+        /// Initializes a new instance of <see cref="CarService"/> with the required repository dependencies.
+        /// </summary>
+        /// <param name="carRepository">Repository for car persistence and retrieval.</param>
+        /// <param name="saleRepository">Repository for sale-related checks and operations.</param>
+        /// <param name="orderRepository">Repository for order-related checks and operations.</param>
+        /// <param name="makeRepository">Repository for make (manufacturer) persistence and retrieval.</param>
         public CarService(ICarRepository carRepository, ISaleRepository saleRepository,IOrderRepository orderRepository, IMakeRepository makeRepository)
         {
             _carRepository = carRepository;
@@ -44,7 +51,13 @@ namespace backend.Services
 
         // ==============================
         // CREATE
-        // ==============================
+        /// <summary>
+        /// Create a new car and persist it to the repository.
+        /// </summary>
+        /// <param name="car">The car to create; must satisfy the service validation rules (required fields such as MakeId, Model, Year, Price, VIN, and Status).</param>
+        /// <returns>The persisted <see cref="Car"/> with repository-assigned values (for example, the Id).</returns>
+        /// <exception cref="ValidationException">Thrown when the provided <paramref name="car"/> fails validation.</exception>
+        /// <exception cref="ConflictException">Thrown when the repository fails to create the car.</exception>
         public async Task<Car> CreateCarAsync(Car car)
         {
             ValidateCar(car);
@@ -55,6 +68,14 @@ namespace backend.Services
 
             return createdCar;
         }
+        /// <summary>
+        /// Ensures a make with the given name exists (creating it if necessary) and creates the provided car associated with that make.
+        /// </summary>
+        /// <param name="makeName">The name of the make to associate with the car; must be non-empty.</param>
+        /// <param name="car">The car to create. Its MakeId will be set to the ensured make's Id.</param>
+        /// <returns>The newly created <see cref="Car"/> with its <c>MakeId</c> assigned.</returns>
+        /// <exception cref="ValidationException">Thrown when <paramref name="makeName"/> is null, empty, or whitespace.</exception>
+        /// <exception cref="ConflictException">Thrown if creating a new make fails.</exception>
         public async Task<Car> CreateCarWithMakeAsync(string makeName, Car car)
         {
             if (string.IsNullOrWhiteSpace(makeName))

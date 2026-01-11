@@ -19,6 +19,16 @@ namespace backend
 {
     public class Program
     {
+        /// <summary>
+        /// Builds, configures, and runs the web application host.
+        /// </summary>
+        /// <param name="args">Command-line arguments passed to the application.</param>
+        /// <remarks>
+        /// The method loads environment variables, registers repositories, services, GraphQL types and schema,
+        /// configures GraphQL and CORS, sets up controllers and middleware, and starts the application.
+        /// </remarks>
+        /// <exception cref="InvalidOperationException">Thrown when the "DefaultConnection" connection string is missing in configuration.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the "FRONTEND_URL" environment variable is not set.</exception>
         public static void Main(string[] args)
         {
             Env.Load();

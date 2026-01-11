@@ -4,6 +4,9 @@ namespace backend.GraphQL.Mutations
 {
     public class RootMutation : ObjectGraphType
     {
+        /// <summary>
+        /// Constructs the root GraphQL mutation by aggregating fields from the provided sub-mutation objects.
+        /// </summary>
         public RootMutation(CarMutation carMutation, 
             SaleMutation saleMutation, 
             OrderMutation orderMutation, 
