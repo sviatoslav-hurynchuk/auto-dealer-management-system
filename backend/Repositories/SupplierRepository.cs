@@ -21,7 +21,7 @@ namespace backend.Repositories
             return await connection.QueryAsync<Supplier>(sql);
         }
 
-        public async Task<Supplier?> GetSupplierByIdAsync(int id)
+        public async Task<Supplier?> GetSupplierByIdAsync(int? id)
         {
             const string sql = "SELECT * FROM Suppliers WHERE Id = @Id";
             using var connection = new SqlConnection(_connectionString);
@@ -70,7 +70,7 @@ namespace backend.Repositories
             return await connection.ExecuteAsync(sql, new { Id = id }) > 0;
         }
 
-        public async Task<bool> ExistsByIdAsync(int id)
+        public async Task<bool> ExistsByIdAsync(int? id)
         {
             const string sql = "SELECT 1 FROM Suppliers WHERE Id = @Id";
             using var connection = new SqlConnection(_connectionString);
