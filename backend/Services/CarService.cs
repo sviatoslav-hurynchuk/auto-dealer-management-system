@@ -86,8 +86,15 @@ namespace backend.Services
             {
                 if (isNewMake && make != null)
                 {
+                    try
+                    {
                         await _makeRepository.DeleteMakeAsync(make.Id);
-                }
+                    }
+                    catch
+                    {
+                       // Suppress rollback errors to preserve the original exception
+                    }
+                    }
                 throw;
             }
         }
