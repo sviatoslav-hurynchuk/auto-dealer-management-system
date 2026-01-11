@@ -88,7 +88,6 @@ CREATE TABLE dbo.Orders
     SupplierID INT NOT NULL,
     CarID INT NOT NULL,
     OrderDate DATETIME NOT NULL,
-    Quantity INT NOT NULL,
     Status VARCHAR(50) NOT NULL,
 
     CONSTRAINT FK_Orders_Suppliers FOREIGN KEY (SupplierID) REFERENCES dbo.Suppliers(id),

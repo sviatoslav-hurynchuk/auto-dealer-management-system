@@ -6,6 +6,5 @@ public class Order
     public int SupplierId { get; set; }
     public int CarId { get; set; }
     public DateTime OrderDate { get; set; }
-    public int Quantity { get; set; }
     public string Status { get; set; } = null!;
 }

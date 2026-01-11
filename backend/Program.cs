@@ -54,7 +54,6 @@ namespace backend
             builder.Services.AddScoped<SaleService>();
             builder.Services.AddScoped<ServiceRequestService>();
 
-          
             builder.Services.AddScoped<CarType>();
             builder.Services.AddScoped<MakeType>();
             builder.Services.AddScoped<CustomerType>();

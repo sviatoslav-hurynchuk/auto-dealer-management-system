@@ -36,8 +36,8 @@ namespace backend.Repositories
         public async Task<Order?> CreateOrderAsync(Order order)
         {
             const string sql = """
-            INSERT INTO Orders (SupplierId, CarId, OrderDate, Quantity, Status)
-            VALUES (@SupplierId, @CarId, @OrderDate, @Quantity, @Status);
+            INSERT INTO Orders (SupplierId, CarId, OrderDate, Status)
+            VALUES (@SupplierId, @CarId, @OrderDate, @Status);
 
             SELECT * FROM Orders WHERE Id = SCOPE_IDENTITY();
             """;
@@ -53,7 +53,6 @@ namespace backend.Repositories
             SET SupplierId = @SupplierId,
                 CarId = @CarId,
                 OrderDate = @OrderDate,
-                Quantity = @Quantity,
                 Status = @Status
             WHERE Id = @Id;
 

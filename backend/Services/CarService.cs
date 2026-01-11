@@ -10,11 +10,13 @@ namespace backend.Services
         private readonly ICarRepository _carRepository;
         private readonly ISaleRepository _saleRepository;
         private readonly IOrderRepository _orderRepository;
-        public CarService(ICarRepository carRepository, ISaleRepository saleRepository,IOrderRepository orderRepository)
+        private readonly IMakeRepository _makeRepository;
+        public CarService(ICarRepository carRepository, ISaleRepository saleRepository,IOrderRepository orderRepository, IMakeRepository makeRepository)
         {
             _carRepository = carRepository;
             _saleRepository = saleRepository;
             _orderRepository = orderRepository;
+            _makeRepository = makeRepository;
         }
 
         // ==============================
@@ -52,6 +54,55 @@ namespace backend.Services
                 throw new ConflictException("Failed to create car.");
 
             return createdCar;
+        }
+        public async Task<Car> CreateCarWithMakeAsync(string makeName, Car car)
+        {
+            if (string.IsNullOrWhiteSpace(makeName))
+                throw new ValidationException("Make name is required.");
+
+            Make? make = null;
+            bool isNewMake = false;
+
+            try
+            {
+                make = await _makeRepository.GetMakeByNameAsync(makeName);
+
+                if (make == null)
+                {
+                    make = new Make { Name = makeName };
+                    make = await _makeRepository.CreateMakeAsync(make);
+                    if (make == null)
+                        throw new ConflictException("Failed to create make.");
+                    isNewMake = true; // <-- прапорець не ставиться
+
+                }
+
+                // Присвоюємо MakeId машини
+                car.MakeId = make.Id;
+
+                // Створюємо машину
+                var createdCar = await CreateCarAsync(car);
+                return createdCar;
+            }
+            catch
+            {
+                if (isNewMake && make != null)
+                {
+                    try
+                    {
+                        await _makeRepository.DeleteMakeAsync(make.Id);
+                    }
+                    catch
+                    {
+                        // Якщо видалити марку не вдалося — логнемо, але не кидаємо нову помилку
+                        // Можна додати логування:
+                        // _logger.LogError(ex, "Failed to rollback newly created make.");
+                    }
+                }
+
+                // Повторно кидаємо початкову помилку
+                throw;
+            }
         }
 
         // ==============================

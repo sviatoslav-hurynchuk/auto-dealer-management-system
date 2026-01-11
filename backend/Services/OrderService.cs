@@ -137,9 +137,6 @@ namespace backend.Services
             if (order.CarId <= 0)
                 throw new ValidationException("CarId is required.");
 
-            if (order.Quantity <= 0)
-                throw new ValidationException("Quantity must be greater than zero.");
-
             if (order.OrderDate == default)
                 throw new ValidationException("OrderDate is required.");
 

@@ -28,6 +28,18 @@ namespace backend.Services
             return supplier;
         }
 
+        public async Task<Supplier> GetSupplierByCompanyNameAsync(string companyName)
+        {
+            if (string.IsNullOrWhiteSpace(companyName))
+                throw new ValidationException("Company name is required.");
+
+            var supplier = await _supplierRepository.GetSupplierByCompanyNameAsync(companyName);
+            if (supplier == null)
+                throw new NotFoundException($"Supplier with company name '{companyName}' not found.");
+
+            return supplier;
+        }
+
         public async Task<Supplier> CreateSupplierAsync(Supplier supplier)
         {
             ValidateSupplier(supplier);
@@ -51,7 +63,7 @@ namespace backend.Services
                 throw new NotFoundException("Supplier not found.");
 
             var duplicate = await _supplierRepository.GetSupplierByCompanyNameAsync(supplier.CompanyName);
-                if (duplicate != null && duplicate.Id != supplier.Id)
+            if (duplicate != null && duplicate.Id != supplier.Id)
                 throw new ConflictException("Another supplier with this company name already exists.");
 
             return await _supplierRepository.UpdateSupplierAsync(supplier);
