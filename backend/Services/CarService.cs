@@ -51,7 +51,6 @@ namespace backend.Services
         public async Task<Car> CreateCarAsync(Car car)
         {
             ValidateCarForCreate(car);
-            ValidateCarRelations(car);
             await ValidateCarForeignKeysAsync(car);
             var createdCar = await _carRepository.CreateCarAsync(car);
             if (createdCar == null)
@@ -102,7 +101,6 @@ namespace backend.Services
                 throw new ValidationException("Car id must be specified for update.");
 
             ValidateCarForUpdate(car);
-            ValidateCarRelations(car);
             await ValidateCarForeignKeysAsync(car);
 
             var existingCar = await _carRepository.GetCarByIdAsync(car.Id);
@@ -165,7 +163,7 @@ namespace backend.Services
             if (car.MakeId <= 0)
                 throw new ValidationException("MakeId is required.");
 
-            if (car.SupplierId <= 0)
+            if (!car.SupplierId.HasValue || car.SupplierId <= 0)
                 throw new ValidationException("SupplierId is required.");
 
             if (string.IsNullOrWhiteSpace(car.Model))
@@ -190,14 +188,6 @@ namespace backend.Services
                 throw new ValidationException("Invalid car status.");
         }
 
-        private static void ValidateCarRelations(Car car)
-        {
-            if (car.MakeId <= 0)
-                throw new ValidationException("MakeId is required.");
-
-            if (car.SupplierId <= 0)
-                throw new ValidationException("SupplierId is required.");
-        }
         private async Task ValidateCarForeignKeysAsync(Car car)
         {
             if (!await _makeRepository.ExistsByIdAsync(car.MakeId))
