@@ -16,7 +16,7 @@ namespace backend.GraphQL.Mutations
             // CREATE
             // ==============================
             Field<CarType>("createCar")
-                .Argument<NonNullGraphType<IntGraphType>>("makeId")
+    .Argument<NonNullGraphType<StringGraphType>>("makeName")
                 .Argument<NonNullGraphType<StringGraphType>>("model")
                 .Argument<NonNullGraphType<IntGraphType>>("year")
                 .Argument<NonNullGraphType<DecimalGraphType>>("price")
@@ -33,7 +33,6 @@ namespace backend.GraphQL.Mutations
                 {
                     var car = new Car
                     {
-                        MakeId = context.GetArgument<int>("makeId"),
                         Model = context.GetArgument<string>("model"),
                         Year = context.GetArgument<int>("year"),
                         Price = context.GetArgument<decimal>("price"),
@@ -48,7 +47,9 @@ namespace backend.GraphQL.Mutations
                         Status = context.GetArgument<string>("status")
                     };
 
-                    return await carService.CreateCarAsync(car);
+                    var makeName = context.GetArgument<string>("makeName");
+
+                    return await carService.CreateCarWithMakeAsync(makeName, car);
                 });
 
             // ==============================
