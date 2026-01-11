@@ -9,7 +9,6 @@ namespace backend.GraphQL.Types
         {
             Name = "OrderInput";
             Field(x => x.SupplierId);
-            Field(x => x.Quantity);
             Field(x => x.OrderDate);
             Field(x => x.Status);
         }

@@ -18,7 +18,6 @@ namespace backend.GraphQL.Mutations
             Field<OrderType>("createOrderWithExistingCarAndSupplier")
                 .Argument<NonNullGraphType<IntGraphType>>("supplierId")
                 .Argument<NonNullGraphType<IntGraphType>>("carId")
-                .Argument<NonNullGraphType<IntGraphType>>("quantity")
                 .Argument<NonNullGraphType<StringGraphType>>("status")
                 .ResolveAsync(async context =>
                 {
@@ -26,7 +25,6 @@ namespace backend.GraphQL.Mutations
                     {
                         SupplierId = context.GetArgument<int>("supplierId"),
                         CarId = context.GetArgument<int>("carId"),
-                        Quantity = context.GetArgument<int>("quantity"),
                         Status = context.GetArgument<string>("status"),
                         OrderDate = DateTime.UtcNow
                     };
@@ -41,7 +39,6 @@ namespace backend.GraphQL.Mutations
                 .Argument<NonNullGraphType<IntGraphType>>("id")
                 .Argument<IntGraphType>("supplierId")
                 .Argument<IntGraphType>("carId")
-                .Argument<IntGraphType>("quantity")
                 .Argument<StringGraphType>("status")
                 .ResolveAsync(async context =>
                 {
@@ -50,7 +47,6 @@ namespace backend.GraphQL.Mutations
 
                     existing.SupplierId = context.GetArgument<int?>("supplierId") ?? existing.SupplierId;
                     existing.CarId = context.GetArgument<int?>("carId") ?? existing.CarId;
-                    existing.Quantity = context.GetArgument<int?>("quantity") ?? existing.Quantity;
                     existing.Status = context.GetArgument<string?>("status") ?? existing.Status;
 
                     return await orderService.UpdateOrderAsync(existing);

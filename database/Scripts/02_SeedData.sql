@@ -51,10 +51,10 @@ VALUES
 
 
 
-INSERT INTO dbo.Orders (SupplierID, CarID, OrderDate, Quantity, Status)
+INSERT INTO dbo.Orders (SupplierID, CarID, OrderDate, Status)
 VALUES
-    (1, 1, GETDATE(), 5, 'Pending'),
-    (2, 2, GETDATE(), 3, 'Completed');
+    (1, 1, GETDATE(), 'Pending'),
+    (2, 2, GETDATE(), 'Completed');
 
 
 

@@ -11,7 +11,6 @@ namespace backend.GraphQL.Types
             Field(x => x.SupplierId);
             Field(x => x.CarId);
             Field(x => x.OrderDate);
-            Field(x => x.Quantity);
             Field(x => x.Status);
         }
     }

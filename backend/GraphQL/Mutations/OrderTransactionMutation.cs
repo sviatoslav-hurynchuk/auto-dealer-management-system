@@ -34,7 +34,6 @@ namespace backend.GraphQL.Mutations
 
                 // Order fields
                 .Argument<NonNullGraphType<StringGraphType>>("orderSupplierName")
-                .Argument<NonNullGraphType<IntGraphType>>("quantity")
                 .Argument<NonNullGraphType<DateGraphType>>("orderDate")
                 .Argument<NonNullGraphType<StringGraphType>>("orderStatus")
 
@@ -62,7 +61,6 @@ namespace backend.GraphQL.Mutations
                     // ==== Create Order object ====
                     var order = new Order
                     {
-                        Quantity = context.GetArgument<int>("quantity"),
                         OrderDate = context.GetArgument<DateTime>("orderDate"),
                         Status = context.GetArgument<string>("orderStatus")
                     };
