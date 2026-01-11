@@ -11,12 +11,15 @@ namespace backend.Services
         private readonly ISaleRepository _saleRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IMakeRepository _makeRepository;
-        public CarService(ICarRepository carRepository, ISaleRepository saleRepository,IOrderRepository orderRepository, IMakeRepository makeRepository)
+        private readonly ISupplierRepository _supplierRepository;
+
+        public CarService(ICarRepository carRepository, ISaleRepository saleRepository,IOrderRepository orderRepository, IMakeRepository makeRepository, ISupplierRepository supplierRepository)
         {
             _carRepository = carRepository;
             _saleRepository = saleRepository;
             _orderRepository = orderRepository;
             _makeRepository = makeRepository;
+            _supplierRepository = supplierRepository;
         }
 
         // ==============================
@@ -47,8 +50,8 @@ namespace backend.Services
         // ==============================
         public async Task<Car> CreateCarAsync(Car car)
         {
-            ValidateCar(car);
-
+            ValidateCarForCreate(car);
+            await ValidateCarForeignKeysAsync(car);
             var createdCar = await _carRepository.CreateCarAsync(car);
             if (createdCar == null)
                 throw new ConflictException("Failed to create car.");
@@ -73,14 +76,9 @@ namespace backend.Services
                     make = await _makeRepository.CreateMakeAsync(make);
                     if (make == null)
                         throw new ConflictException("Failed to create make.");
-                    isNewMake = true; // <-- прапорець не ставиться
-
+                    isNewMake = true;
                 }
-
-                // Присвоюємо MakeId машини
                 car.MakeId = make.Id;
-
-                // Створюємо машину
                 var createdCar = await CreateCarAsync(car);
                 return createdCar;
             }
@@ -94,13 +92,9 @@ namespace backend.Services
                     }
                     catch
                     {
-                        // Якщо видалити марку не вдалося — логнемо, але не кидаємо нову помилку
-                        // Можна додати логування:
-                        // _logger.LogError(ex, "Failed to rollback newly created make.");
+                       // Suppress rollback errors to preserve the original exception
                     }
-                }
-
-                // Повторно кидаємо початкову помилку
+                    }
                 throw;
             }
         }
@@ -113,7 +107,8 @@ namespace backend.Services
             if (car.Id <= 0)
                 throw new ValidationException("Car id must be specified for update.");
 
-            ValidateCar(car);
+            ValidateCarForUpdate(car);
+            await ValidateCarForeignKeysAsync(car);
 
             var existingCar = await _carRepository.GetCarByIdAsync(car.Id);
             if (existingCar == null)
@@ -152,13 +147,31 @@ namespace backend.Services
         // ==============================
         // VALIDATION
         // ==============================
-        private static void ValidateCar(Car car)
+        private static void ValidateCarForCreate(Car car)
+        {
+            ValidateCarBase(car);
+
+            if (car.Status != "Pending" && car.Status != "In stock")
+                throw new ValidationException(
+                    "Car status must be 'Pending' or 'In stock' on creation."
+                );
+        }
+
+        private static void ValidateCarForUpdate(Car car)
+        {
+            ValidateCarBase(car);
+        }
+
+        private static void ValidateCarBase(Car car)
         {
             if (car == null)
                 throw new ValidationException("Car payload is required.");
 
             if (car.MakeId <= 0)
                 throw new ValidationException("MakeId is required.");
+
+            if (!car.SupplierId.HasValue || car.SupplierId <= 0)
+                throw new ValidationException("SupplierId is required.");
 
             if (string.IsNullOrWhiteSpace(car.Model))
                 throw new ValidationException("Model is required.");
@@ -180,11 +193,19 @@ namespace backend.Services
                 car.Status != "Sold" &&
                 car.Status != "Archived")
                 throw new ValidationException("Invalid car status.");
-
-            if (!string.IsNullOrWhiteSpace(car.Condition) &&
-                car.Condition != "New" &&
-                car.Condition != "Used")
-                throw new ValidationException("Condition must be 'New' or 'Used'.");
         }
+
+        private async Task ValidateCarForeignKeysAsync(Car car)
+        {
+            if (!await _makeRepository.ExistsByIdAsync(car.MakeId))
+                throw new NotFoundException($"Make with id {car.MakeId} not found.");
+
+            var supplier = await _supplierRepository.GetSupplierByIdAsync(car.SupplierId);
+            if (supplier == null)
+                throw new NotFoundException($"Supplier with id {car.SupplierId} not found.");
+
+        }
+
+
     }
 }
