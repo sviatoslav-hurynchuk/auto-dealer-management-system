@@ -11,8 +11,7 @@ namespace backend.GraphQL.Mutations
             SupplierMutation supplierMutation, 
             EmployeeMutation employeeMutation,
             CustomerMutation customerMutation,
-            ServiceRequestMutation serviceRequestMutation,
-            OrderTransactionMutation orderTransactionMutation
+            ServiceRequestMutation serviceRequestMutation
             )
         {
             Name = "Mutation";
@@ -24,7 +23,7 @@ namespace backend.GraphQL.Mutations
                 supplierMutation, 
                 employeeMutation, 
                 customerMutation,
-            serviceRequestMutation, orderTransactionMutation
+            serviceRequestMutation
             };
 
             foreach (var mutation in mutations)
