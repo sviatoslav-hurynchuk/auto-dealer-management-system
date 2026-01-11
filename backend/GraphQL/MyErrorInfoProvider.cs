@@ -22,11 +22,9 @@ namespace backend.GraphQL
                 _ => "INTERNAL_ERROR"
             };
 
-            return new ErrorInfo
-            {
-                Message = info.Message,
-                Extensions = info.Extensions
-            };
+            info.Message = original.Message;
+
+            return info;
         }
     }
 }
