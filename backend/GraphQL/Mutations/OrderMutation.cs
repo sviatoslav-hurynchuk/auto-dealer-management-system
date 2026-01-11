@@ -15,7 +15,7 @@ namespace backend.GraphQL.Mutations
             // ==============================
             // CREATE ORDER
             // ==============================
-            Field<OrderType>("createOrder")
+            Field<OrderType>("createOrderWithExistingCarAndSupplier")
                 .Argument<NonNullGraphType<IntGraphType>>("supplierId")
                 .Argument<NonNullGraphType<IntGraphType>>("carId")
                 .Argument<NonNullGraphType<IntGraphType>>("quantity")
