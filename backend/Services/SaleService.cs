@@ -181,11 +181,11 @@ namespace backend.Services
 
             var sale = await _saleRepository.GetSaleByIdAsync(id);
             if (sale == null)
-                throw new NotFoundException($"Sale with id {id} not found");
+                throw new ValidationException($"Sale with id {id} not found");
 
             var deleted = await _saleRepository.DeleteSaleAsync(id);
             if (!deleted)
-                throw new ConflictException("Failed to delete sale");
+                throw new ValidationException("Failed to delete sale");
         }
 
         // ==============================
