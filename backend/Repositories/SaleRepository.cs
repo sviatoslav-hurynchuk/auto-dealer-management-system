@@ -31,7 +31,7 @@ namespace backend.Repositories
                     FinalPrice,
                     Status
                 FROM Sales
-                ORDER BY Id DESC;
+                ORDER BY Id;
             ";
 
             return await connection.QueryAsync<Sale>(sql);

@@ -30,7 +30,7 @@ namespace backend.Repositories
                     Email,
                     IsActive
                 FROM Employees
-                ORDER BY id DESC;
+                ORDER BY id;
             ";
 
             return await connection.QueryAsync<Employee>(sql);

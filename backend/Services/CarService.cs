@@ -2,6 +2,7 @@
 using backend.Models;
 using backend.Repositories;
 using backend.Repositories.Interfaces;
+using Microsoft.Extensions.Options;
 
 namespace backend.Services
 {
@@ -40,7 +41,7 @@ namespace backend.Services
 
             var car = await _carRepository.GetCarByIdAsync(id);
             if (car == null)
-                throw new NotFoundException($"Car with id {id} not found.");
+                throw new ValidationException($"Car with id {id} not found.");
 
             return car;
         }
@@ -54,7 +55,7 @@ namespace backend.Services
             await ValidateCarForeignKeysAsync(car);
             var createdCar = await _carRepository.CreateCarAsync(car);
             if (createdCar == null)
-                throw new ConflictException("Failed to create car.");
+                throw new ValidationException("Failed to create car.");
 
             return createdCar;
         }
@@ -75,7 +76,7 @@ namespace backend.Services
                     make = new Make { Name = makeName };
                     make = await _makeRepository.CreateMakeAsync(make);
                     if (make == null)
-                        throw new ConflictException("Failed to create make.");
+                        throw new ValidationException("Failed to create make.");
                     isNewMake = true;
                 }
                 car.MakeId = make.Id;
@@ -92,7 +93,6 @@ namespace backend.Services
                     }
                     catch
                     {
-                       // Suppress rollback errors to preserve the original exception
                     }
                     }
                 throw;
@@ -112,11 +112,11 @@ namespace backend.Services
 
             var existingCar = await _carRepository.GetCarByIdAsync(car.Id);
             if (existingCar == null)
-                throw new NotFoundException($"Car with id {car.Id} not found.");
+                throw new ValidationException($"Car with id {car.Id} not found.");
 
             var updatedCar = await _carRepository.UpdateCarAsync(car);
             if (updatedCar == null)
-                throw new ConflictException("Failed to update car.");
+                throw new ValidationException("Failed to update car.");
 
             return updatedCar;
         }
@@ -131,17 +131,17 @@ namespace backend.Services
 
             var car = await _carRepository.GetCarByIdAsync(id);
             if (car == null)
-                throw new NotFoundException($"Car with id {id} not found.");
+                throw new ValidationException($"Car with id {id} not found.");
 
             if (await _saleRepository.ExistsByCarIdAsync(id))
-                throw new ConflictException("Car cannot be deleted because it has sales.");
+                throw new ValidationException("Car cannot be deleted because it has sales.");
 
             if (await _orderRepository.ExistsByCarIdAsync(id))
-                throw new ConflictException("Car cannot be deleted because it has orders.");
+                throw new ValidationException("Car cannot be deleted because it has orders.");
 
             var deleted = await _carRepository.DeleteCarAsync(id);
             if (!deleted)
-                throw new ConflictException("Failed to delete car.");
+                throw new ValidationException("Failed to delete car.");
         }
 
         // ==============================
@@ -198,11 +198,15 @@ namespace backend.Services
         private async Task ValidateCarForeignKeysAsync(Car car)
         {
             if (!await _makeRepository.ExistsByIdAsync(car.MakeId))
-                throw new NotFoundException($"Make with id {car.MakeId} not found.");
+                throw new ValidationException($"Make with id {car.MakeId} not found.");
 
-            var supplier = await _supplierRepository.GetSupplierByIdAsync(car.SupplierId);
-            if (supplier == null)
-                throw new NotFoundException($"Supplier with id {car.SupplierId} not found.");
+            var supplier = await _supplierRepository.ExistsByIdAsync(car.SupplierId);
+            if (supplier == false)
+                throw new ValidationException($"Supplier with id {car.SupplierId} not found.");
+
+            var vinExists = await _carRepository.VINExistsAsync(car.Vin);
+            if(vinExists == true)
+                throw new ValidationException($"Car with VIN {car.Vin} already exists.");
 
         }
 

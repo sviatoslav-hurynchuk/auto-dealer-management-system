@@ -10,5 +10,6 @@ namespace backend.Repositories.Interfaces
         Task<Car?> UpdateCarAsync(Car car);
         Task<bool> DeleteCarAsync(int id);
         Task<bool> ExistsByMakeIdAsync(int makeId);
+        Task<bool> VINExistsAsync(string vin);
     }
 }

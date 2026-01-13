@@ -24,7 +24,7 @@ namespace backend.Repositories
             const string sql = @"
                 SELECT id, Name
                 FROM Makes
-                ORDER BY Name;
+                ORDER BY id;
             ";
 
             return await connection.QueryAsync<Make>(sql);
