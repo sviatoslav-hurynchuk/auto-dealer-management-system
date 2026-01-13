@@ -35,7 +35,7 @@ namespace backend.Services
 
             var make = await _makeRepository.GetMakeByIdAsync(id);
             if (make == null)
-                throw new NotFoundException($"Make with id {id} not found.");
+                throw new ValidationException($"Make with id {id} not found.");
 
             return make;
         }
@@ -49,11 +49,11 @@ namespace backend.Services
 
             var existing = await _makeRepository.GetMakeByNameAsync(make.Name);
             if (existing != null)
-                throw new ConflictException("Make with this name already exists.");
+                throw new ValidationException("Make with this name already exists.");
 
             var created = await _makeRepository.CreateMakeAsync(make);
             if (created == null)
-                throw new ConflictException("Failed to create make.");
+                throw new ValidationException("Failed to create make.");
 
             return created;
         }
@@ -70,15 +70,15 @@ namespace backend.Services
 
             var existing = await _makeRepository.GetMakeByIdAsync(make.Id);
             if (existing == null)
-                throw new NotFoundException($"Make with id {make.Id} not found.");
+                throw new ValidationException($"Make with id {make.Id} not found.");
 
             var duplicate = await _makeRepository.GetMakeByNameAsync(make.Name);
             if (duplicate != null && duplicate.Id != make.Id)
-                throw new ConflictException("Another make with this name already exists.");
+                throw new ValidationException("Another make with this name already exists.");
 
             var updated = await _makeRepository.UpdateMakeAsync(make);
             if (updated == null)
-                throw new ConflictException("Failed to update make.");
+                throw new ValidationException("Failed to update make.");
 
             return updated;
         }
@@ -93,14 +93,14 @@ namespace backend.Services
 
             var exists = await _makeRepository.ExistsByIdAsync(id);
             if (!exists)
-                throw new NotFoundException($"Make with id {id} not found.");
+                throw new ValidationException($"Make with id {id} not found.");
 
             if (await _carRepository.ExistsByMakeIdAsync(id))
-                throw new ConflictException("Make cannot be deleted because it is used by cars.");
+                throw new ValidationException("Make cannot be deleted because it is used by cars.");
 
             var deleted = await _makeRepository.DeleteMakeAsync(id);
             if (!deleted)
-                throw new ConflictException("Failed to delete make.");
+                throw new ValidationException("Failed to delete make.");
         }
 
         // ==============================

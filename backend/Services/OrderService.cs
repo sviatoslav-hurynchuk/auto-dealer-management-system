@@ -38,7 +38,7 @@ namespace backend.Services
 
             var order = await _orderRepository.GetOrderByIdAsync(id);
             if (order == null)
-                throw new NotFoundException($"Order with id {id} not found.");
+                throw new ValidationException($"Order with id {id} not found.");
 
             return order;
         }
@@ -53,19 +53,19 @@ namespace backend.Services
             // Перевірка авто
             var car = await _carRepository.GetCarByIdAsync(order.CarId);
             if (car == null)
-                throw new NotFoundException("Car not found.");
+                throw new ValidationException("Car not found.");
 
             if (car.Status != "Pending")
-                throw new ConflictException("Car cannot be ordered in its current status.");
+                throw new ValidationException("Car cannot be ordered in its current status.");
 
             // Перевірка постачальника
             var supplier = await _supplierRepository.GetSupplierByIdAsync(order.SupplierId);
             if (supplier == null)
-                throw new NotFoundException("Supplier not found.");
+                throw new ValidationException("Supplier not found.");
 
             var createdOrder = await _orderRepository.CreateOrderAsync(order);
             if (createdOrder == null)
-                throw new InvalidOperationException("Failed to create order.");
+                throw new ValidationException("Failed to create order.");
 
             return createdOrder;
         }
@@ -82,17 +82,17 @@ namespace backend.Services
 
             var existingOrder = await _orderRepository.GetOrderByIdAsync(order.Id);
             if (existingOrder == null)
-                throw new NotFoundException($"Order with id {order.Id} not found.");
+                throw new ValidationException($"Order with id {order.Id} not found.");
 
             // Якщо змінився CarId, перевіряємо нове авто
             if (existingOrder.CarId != order.CarId)
             {
                 var car = await _carRepository.GetCarByIdAsync(order.CarId);
                 if (car == null)
-                    throw new NotFoundException("Car not found.");
+                    throw new ValidationException("Car not found.");
 
                 if (car.Status != "Pending")
-                    throw new ConflictException("Car cannot be ordered in its current status.");
+                    throw new ValidationException("Car cannot be ordered in its current status.");
             }
 
             // Якщо змінився SupplierId, перевіряємо нового постачальника
@@ -100,12 +100,12 @@ namespace backend.Services
             {
                 var supplier = await _supplierRepository.GetSupplierByIdAsync(order.SupplierId);
                 if (supplier == null)
-                    throw new NotFoundException("Supplier not found.");
+                    throw new ValidationException("Supplier not found.");
             }
 
             var updated = await _orderRepository.UpdateOrderAsync(order);
             if (updated == null)
-                throw new InvalidOperationException("Failed to update order.");
+                throw new ValidationException("Failed to update order.");
 
             return updated;
         }
@@ -120,7 +120,7 @@ namespace backend.Services
 
             var deleted = await _orderRepository.DeleteOrderAsync(id);
             if (!deleted)
-                throw new NotFoundException($"Order with id {id} not found.");
+                throw new ValidationException($"Order with id {id} not found.");
         }
 
         // ==============================
