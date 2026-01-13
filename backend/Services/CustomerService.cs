@@ -2,6 +2,7 @@
 using backend.Models;
 using backend.Repositories.Interfaces;
 using Microsoft.Data.SqlClient;
+using System.Net.Mail;
 
 namespace backend.Services
 {
@@ -28,7 +29,7 @@ namespace backend.Services
 
             var customer = await _customerRepository.GetCustomerByIdAsync(id);
             if (customer == null)
-                throw new NotFoundException($"Customer with id {id} not found.");
+                throw new ValidationException($"Customer with id {id} not found.");
 
             return customer;
         }
@@ -42,22 +43,33 @@ namespace backend.Services
 
             if (!string.IsNullOrWhiteSpace(customer.Email))
             {
+                ValidateEmailFormat(customer.Email);
+
                 var existing = await _customerRepository.GetCustomerByEmailAsync(customer.Email);
                 if (existing != null)
-                    throw new ConflictException("Customer with this email already exists.");
+                    throw new ValidationException("Customer with this email already exists.");
             }
 
             try
             {
-                return await _customerRepository.CreateCustomerAsync(customer);
+                var created = await _customerRepository.CreateCustomerAsync(customer);
+
+                if (created == null)
+                    throw new ValidationException("Failed to create customer.");
+
+                return created;
             }
-            catch (ConflictException)
+            catch (ValidationException)
             {
                 throw;
             }
-            catch (Exception ex) when (IsUniqueViolation(ex))
+            catch (SqlException ex)
             {
-                throw new ConflictException("Customer with this email already exists.");
+                throw new ValidationException($"Database error while creating customer: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                throw new ValidationException($"Unexpected error while creating customer: {ex.Message}");
             }
         }
 
@@ -73,26 +85,37 @@ namespace backend.Services
 
             var exists = await _customerRepository.ExistsByIdAsync(customer.Id);
             if (!exists)
-                throw new NotFoundException("Customer not found.");
+                throw new ValidationException("Customer not found.");
 
             if (!string.IsNullOrWhiteSpace(customer.Email))
             {
+                ValidateEmailFormat(customer.Email);
+
                 var duplicate = await _customerRepository.GetCustomerByEmailAsync(customer.Email);
                 if (duplicate != null && duplicate.Id != customer.Id)
-                    throw new ConflictException("Another customer with this email already exists.");
+                    throw new ValidationException("Another customer with this email already exists.");
             }
 
             try
             {
-                return await _customerRepository.UpdateCustomerAsync(customer);
+                var updated = await _customerRepository.UpdateCustomerAsync(customer);
+
+                if (updated == null)
+                    throw new ValidationException("Failed to update customer.");
+
+                return updated;
             }
-            catch (ConflictException)
+            catch (ValidationException)
             {
                 throw;
             }
-            catch (Exception ex) when (IsUniqueViolation(ex))
+            catch (SqlException ex)
             {
-                throw new ConflictException("Another customer with this email already exists.");
+                throw new ValidationException($"Database error while updating customer: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                throw new ValidationException($"Unexpected error while updating customer: {ex.Message}");
             }
         }
 
@@ -106,42 +129,31 @@ namespace backend.Services
 
             var exists = await _customerRepository.ExistsByIdAsync(id);
             if (!exists)
-                throw new NotFoundException("Customer not found.");
+                throw new ValidationException("Customer not found.");
 
             var hasSales = await _saleRepository.ExistsByCustomerIdAsync(id);
             if (hasSales)
-                throw new ConflictException("Cannot delete customer with existing sales.");
+                throw new ValidationException("Cannot delete customer with existing sales.");
 
             try
             {
                 var deleted = await _customerRepository.DeleteCustomerAsync(id);
                 if (!deleted)
-                    throw new ConflictException("Failed to delete customer.");
+                    throw new ValidationException("Failed to delete customer.");
             }
-            catch (ConflictException)
+            catch (ValidationException)
             {
                 throw;
             }
-            catch (Exception ex) when (IsForeignKeyViolation(ex))
+            catch (SqlException ex)
             {
-                throw new ConflictException("Cannot delete customer because related records exist (e.g., sales).");
+                throw new ValidationException($"Database error while deleting customer: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                throw new ValidationException($"Unexpected error while deleting customer: {ex.Message}");
             }
         }
-
-        // ==============================
-        // SQL FOREIGN KEY VIOLATION DETECTOR
-        // ==============================
-        private static bool IsForeignKeyViolation(Exception ex)
-        {
-            if (ex is SqlException sqlEx)
-                return sqlEx.Number == 547; // Foreign key violation in SQL Server
-
-            if (ex.InnerException != null)
-                return IsForeignKeyViolation(ex.InnerException);
-
-            return false;
-        }
-
 
         // ==============================
         // VALIDATION
@@ -164,18 +176,16 @@ namespace backend.Services
                 throw new ValidationException("Phone is too long.");
         }
 
-        // ==============================
-        // SQL UNIQUE VIOLATION DETECTOR
-        // ==============================
-        private static bool IsUniqueViolation(Exception ex)
+        private static void ValidateEmailFormat(string email)
         {
-            if (ex is SqlException sqlEx)
-                return sqlEx.Number == 2627 || sqlEx.Number == 2601;
-
-            if (ex.InnerException != null)
-                return IsUniqueViolation(ex.InnerException);
-
-            return false;
+            try
+            {
+                _ = new MailAddress(email);
+            }
+            catch
+            {
+                throw new ValidationException("Email format is invalid.");
+            }
         }
     }
 }

@@ -38,7 +38,7 @@ namespace backend.Repositories
                     BodyType,
                     Status
                 FROM Cars
-                ORDER BY id DESC;
+                ORDER BY id;
             ";
 
             return await connection.QueryAsync<Car>(sql);
@@ -170,5 +170,14 @@ namespace backend.Repositories
             var result = await connection.QueryFirstOrDefaultAsync<int?>(sql, new { MakeId = makeId });
             return result.HasValue;
         }
+
+        public async Task<bool> VINExistsAsync(string vin)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            const string sql = "SELECT 1 FROM Cars WHERE VIN = @Vin";
+            var result = await connection.QueryFirstOrDefaultAsync<int?>(sql, new { Vin = vin });
+            return result.HasValue;
+        }
+
     }
 }

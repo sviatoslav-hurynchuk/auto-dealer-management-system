@@ -29,7 +29,7 @@ namespace backend.Repositories
                     Status,
                     UpdatedAt
                 FROM ServiceRequests
-                ORDER BY Id DESC;
+                ORDER BY Id;
             """;
 
             return await connection.QueryAsync<ServiceRequest>(sql);

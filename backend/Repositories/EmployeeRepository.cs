@@ -30,7 +30,7 @@ namespace backend.Repositories
                     Email,
                     IsActive
                 FROM Employees
-                ORDER BY id DESC;
+                ORDER BY id;
             ";
 
             return await connection.QueryAsync<Employee>(sql);
@@ -53,7 +53,7 @@ namespace backend.Repositories
                     IsActive
                 FROM Employees
                 WHERE IsActive = 1
-                ORDER BY id DESC;
+                ORDER BY id;
             ";
 
             return await connection.QueryAsync<Employee>(sql);
@@ -79,6 +79,24 @@ namespace backend.Repositories
             ";
 
             return await connection.QuerySingleOrDefaultAsync<Employee>(sql, new { Id = id });
+        }
+        public async Task<Employee?> GetEmployeeByEmailAsync(string email)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            const string sql = @"
+        SELECT 
+            Id,
+            FullName,
+            Position,
+            Phone,
+            Email,
+            IsActive
+        FROM Employees
+        WHERE Email = @Email;
+    ";
+
+            return await connection.QuerySingleOrDefaultAsync<Employee>(sql, new { Email = email });
         }
 
         // ==============================

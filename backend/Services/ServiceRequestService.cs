@@ -1,6 +1,6 @@
-﻿using backend.Models;
+﻿using backend.Exceptions;
+using backend.Models;
 using backend.Repositories.Interfaces;
-using backend.Exceptions;
 
 namespace backend.Services
 {
@@ -35,7 +35,7 @@ namespace backend.Services
 
             var request = await _serviceRequestRepository.GetRequestByIdAsync (id);
             if (request == null)
-                throw new NotFoundException($"ServiceRequest with id {id} not found");
+                throw new ValidationException($"ServiceRequest with id {id} not found");
 
             return request;
         }
@@ -50,7 +50,7 @@ namespace backend.Services
 
             var car = await _carRepository.GetCarByIdAsync(carId);
             if (car == null)
-                throw new NotFoundException("Car not found");
+                throw new ValidationException("Car not found");
 
             return await _serviceRequestRepository.GetRequestsByCarIdAsync(carId);
         }
@@ -64,11 +64,11 @@ namespace backend.Services
 
             var car = await _carRepository.GetCarByIdAsync(request.CarId);
             if (car == null)
-                throw new NotFoundException("Car not found");
+                throw new ValidationException("Car not found");
 
             var created = await _serviceRequestRepository.CreateRequestAsync(request);
             if (created == null)
-                throw new ConflictException("Failed to create service request");
+                throw new ValidationException("Failed to create service request");
 
             return created;
         }
@@ -85,11 +85,14 @@ namespace backend.Services
 
             var existing = await _serviceRequestRepository.GetRequestByIdAsync(request.Id);
             if (existing == null)
-                throw new NotFoundException($"ServiceRequest with id {request.Id} not found");
+                throw new ValidationException($"ServiceRequest with id {request.Id} not found");
+
+            if (request.CarId != existing.CarId)
+                throw new ValidationException("CarId cannot be changed");
 
             var updated = await _serviceRequestRepository.UpdateRequestAsync(request);
             if (updated == null)
-                throw new ConflictException("Failed to update service request");
+                throw new ValidationException("Failed to update service request");
 
             return updated;
         }
@@ -102,11 +105,20 @@ namespace backend.Services
             if (id <= 0)
                 throw new ValidationException("ServiceRequest id must be greater than zero");
 
-            var deleted = await _serviceRequestRepository.DeleteRequestAsync(id);
+            var existing = await _serviceRequestRepository.GetRequestByIdAsync(id);
+            if (existing == null)
+                throw new ValidationException($"ServiceRequest with id {id} not found");
 
+            if (existing.Status != "Completed")
+                throw new ValidationException(
+                    "Cannot delete ServiceRequest that is not completed"
+                );
+
+            var deleted = await _serviceRequestRepository.DeleteRequestAsync(id);
             if (!deleted)
-                throw new NotFoundException($"ServiceRequest with id {id} not found");
+                throw new ValidationException("Failed to delete ServiceRequest");
         }
+
 
 
         // ==============================

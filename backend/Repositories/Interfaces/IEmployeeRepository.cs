@@ -12,5 +12,6 @@ namespace backend.Repositories.Interfaces
         Task<bool> DeleteEmployeeAsync(int id);
         Task<bool> DeactivateEmployeeAsync(int id);
         Task<bool> ExistsByIdAsync(int id);
+        Task<Employee?> GetEmployeeByEmailAsync(string email);
     }
 }

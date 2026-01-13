@@ -1,6 +1,7 @@
 ﻿using backend.Exceptions;
 using backend.Models;
 using backend.Repositories.Interfaces;
+using System.Net.Mail;
 
 namespace backend.Services
 {
@@ -37,7 +38,7 @@ namespace backend.Services
 
             var employee = await _employeeRepository.GetEmployeeByIdAsync(id);
             if (employee == null)
-                throw new NotFoundException($"Employee with id {id} not found.");
+                throw new ValidationException($"Employee with id {id} not found.");
 
             return employee;
         }
@@ -51,9 +52,16 @@ namespace backend.Services
 
             employee.IsActive = true;
 
+            if (!string.IsNullOrWhiteSpace(employee.Email))
+            {
+                var existing = await _employeeRepository.GetEmployeeByEmailAsync(employee.Email);
+                if (existing != null)
+                    throw new ValidationException("Employee with this email already exists.");
+            }
+
             var created = await _employeeRepository.CreateEmployeeAsync(employee);
             if (created == null)
-                throw new ConflictException("Failed to create employee.");
+                throw new ValidationException("Failed to create employee.");
 
             return created;
         }
@@ -70,13 +78,20 @@ namespace backend.Services
 
             var existing = await _employeeRepository.GetEmployeeByIdAsync(employee.Id);
             if (existing == null)
-                throw new NotFoundException($"Employee with id {employee.Id} not found.");
+                throw new ValidationException($"Employee with id {employee.Id} not found.");
 
             employee.IsActive = existing.IsActive;
 
+            if (!string.IsNullOrWhiteSpace(employee.Email))
+            {
+                var duplicate = await _employeeRepository.GetEmployeeByEmailAsync(employee.Email);
+                if (duplicate != null && duplicate.Id != employee.Id)
+                    throw new ValidationException("Another employee with this email already exists.");
+            }
+
             var updated = await _employeeRepository.UpdateEmployeeAsync(employee);
             if (updated == null)
-                throw new ConflictException("Failed to update employee.");
+                throw new ValidationException("Failed to update employee.");
 
             return updated;
         }
@@ -91,14 +106,14 @@ namespace backend.Services
 
             var employee = await _employeeRepository.GetEmployeeByIdAsync(id);
             if (employee == null)
-                throw new NotFoundException($"Employee with id {id} not found.");
+                throw new ValidationException($"Employee with id {id} not found.");
 
             if (!employee.IsActive)
-                throw new ConflictException("Employee is already inactive.");
+                throw new ValidationException("Employee is already inactive.");
 
             var success = await _employeeRepository.DeactivateEmployeeAsync(id);
             if (!success)
-                throw new ConflictException("Failed to deactivate employee.");
+                throw new ValidationException("Failed to deactivate employee.");
         }
 
         // ==============================
@@ -111,17 +126,17 @@ namespace backend.Services
 
             var employee = await _employeeRepository.GetEmployeeByIdAsync(id);
             if (employee == null)
-                throw new NotFoundException($"Employee with id {id} not found.");
+                throw new ValidationException($"Employee with id {id} not found.");
 
             // 🔒 ключова бізнес-перевірка
             if (await _saleRepository.ExistsByEmployeeIdAsync(id))
-                throw new ConflictException(
+                throw new ValidationException(
                     "Employee cannot be deleted because they have sales."
                 );
 
             var deleted = await _employeeRepository.DeleteEmployeeAsync(id);
             if (!deleted)
-                throw new ConflictException("Failed to delete employee.");
+                throw new ValidationException("Failed to delete employee.");
         }
 
         // ==============================
@@ -141,6 +156,19 @@ namespace backend.Services
             if (!string.IsNullOrWhiteSpace(employee.Email) &&
                 employee.Email.Length > 100)
                 throw new ValidationException("Email is too long.");
+            if (!string.IsNullOrWhiteSpace(employee.Email))
+                ValidateEmailFormat(employee.Email);
+        }
+        private static void ValidateEmailFormat(string email)
+        {
+            try
+            {
+                _ = new MailAddress(email);
+            }
+            catch
+            {
+                throw new ValidationException("Email format is invalid.");
+            }
         }
     }
 }

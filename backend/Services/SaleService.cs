@@ -9,15 +9,18 @@ namespace backend.Services
         private readonly ISaleRepository _saleRepository;
         private readonly ICarRepository _carRepository;
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly ICustomerRepository _customerRepository;
 
         public SaleService(
-            ISaleRepository saleRepository,
-            ICarRepository carRepository,
-            IEmployeeRepository employeeRepository)
+        ISaleRepository saleRepository,
+        ICarRepository carRepository,
+        IEmployeeRepository employeeRepository,
+        ICustomerRepository customerRepository)
         {
             _saleRepository = saleRepository;
             _carRepository = carRepository;
             _employeeRepository = employeeRepository;
+            _customerRepository = customerRepository;
         }
 
 
@@ -51,34 +54,40 @@ namespace backend.Services
         {
             ValidateSale(sale);
 
+            var customerExists = await _customerRepository.ExistsByIdAsync(sale.CustomerId);
+            if (!customerExists)
+                throw new ValidationException("Customer not found.");
+
             var car = await _carRepository.GetCarByIdAsync(sale.CarId);
             if (car == null)
-                throw new NotFoundException("Car not found");
+                throw new ValidationException("Car not found.");
 
             if (car.Status == "Sold")
-                throw new ConflictException("Car is already sold");
+                throw new ValidationException("Car is already sold.");
 
             var employee = await _employeeRepository.GetEmployeeByIdAsync(sale.EmployeeId);
             if (employee == null)
-                throw new NotFoundException("Employee not found");
+                throw new ValidationException("Employee not found.");
 
             if (!employee.IsActive)
-                throw new ConflictException("Cannot create sale for inactive employee");
+                throw new ValidationException("Employee is inactive.");
 
             var createdSale = await _saleRepository.CreateSaleAsync(sale);
             if (createdSale == null)
-                throw new ConflictException("Failed to create sale");
+                throw new ValidationException("Failed to create sale.");
 
-
-            // TODO: This operation must be wrapped in a transaction
             if (sale.Status == "Completed")
             {
                 car.Status = "Sold";
-                var updatedCar = await _carRepository.UpdateCarAsync(car) ?? throw new ConflictException("Failed to update car status after sale creation");
+
+                var updatedCar = await _carRepository.UpdateCarAsync(car);
+                if (updatedCar == null)
+                    throw new ValidationException("Failed to update car status after sale creation.");
             }
 
             return createdSale;
         }
+
 
         // ==============================
         // UPDATE
@@ -86,57 +95,80 @@ namespace backend.Services
         public async Task<Sale> UpdateSaleAsync(Sale sale)
         {
             if (sale.Id <= 0)
-                throw new ValidationException("Sale id must be specified for update");
+                throw new ValidationException("Sale id must be specified for update.");
 
             ValidateSale(sale);
 
+            // Отримуємо поточний запис продажу
             var existingSale = await _saleRepository.GetSaleByIdAsync(sale.Id);
             if (existingSale == null)
-                throw new NotFoundException($"Sale with id {sale.Id} not found");
+                throw new ValidationException($"Sale with id {sale.Id} not found.");
 
+            // Перевірка Customer
+            if (sale.CustomerId != existingSale.CustomerId)
+            {
+                if (!await _customerRepository.ExistsByIdAsync(sale.CustomerId))
+                    throw new ValidationException("Customer not found.");
+            }
+
+            // Перевірка Employee
             if (sale.EmployeeId != existingSale.EmployeeId)
             {
                 var employee = await _employeeRepository.GetEmployeeByIdAsync(sale.EmployeeId);
                 if (employee == null)
-                    throw new NotFoundException("Employee not found");
+                    throw new ValidationException("Employee not found.");
 
                 if (!employee.IsActive)
-                    throw new ConflictException("Cannot assign sale to inactive employee");
+                    throw new ValidationException("Employee is inactive.");
             }
 
+            // Кеш авто для подальших перевірок
+            Car? carToMarkSold = null;
+
+            // Перевірка Car
             if (sale.CarId != existingSale.CarId)
             {
+                if (existingSale.Status == "Completed")
+                    throw new ValidationException("Cannot change car for a completed sale.");
+
                 var car = await _carRepository.GetCarByIdAsync(sale.CarId);
                 if (car == null)
-                    throw new NotFoundException("Car not found");
+                    throw new ValidationException("Car not found.");
 
                 if (car.Status == "Sold")
-                    throw new ConflictException("Car is already sold");
+                    throw new ValidationException("Car is already sold.");
             }
 
-            var updatedSale = await _saleRepository.UpdateSaleAsync(sale);
-            if (updatedSale == null)
-                throw new ConflictException("Failed to update sale");
-
-            // 🔹 Якщо статус став Completed — продаємо авто
+            // Додаткова перевірка для переходу в Completed
             if (sale.Status == "Completed" && existingSale.Status != "Completed")
             {
-                var car = await _carRepository.GetCarByIdAsync(sale.CarId);
-                if (car == null)
-                    throw new NotFoundException("Car not found");
+                carToMarkSold = await _carRepository.GetCarByIdAsync(sale.CarId);
+                if (carToMarkSold == null)
+                    throw new ValidationException("Car not found.");
 
-                if (car.Status == "Sold")
-                    throw new ConflictException("Car is already sold");
+                if (carToMarkSold.Status == "Sold")
+                    throw new ValidationException("Car is already sold.");
+            }
 
-                car.Status = "Sold";
+            // Оновлюємо продаж
+            var updatedSale = await _saleRepository.UpdateSaleAsync(sale);
+            if (updatedSale == null)
+                throw new ValidationException("Failed to update sale.");
 
-                // TODO: This operation must be wrapped in a transaction
-                var updatedCar = await _carRepository.UpdateCarAsync(car)
-                    ?? throw new ConflictException("Failed to update car status after sale completion");
+            // Якщо статус став Completed — оновлюємо статус авто
+            if (carToMarkSold != null)
+            {
+                carToMarkSold.Status = "Sold";
+                var updatedCar = await _carRepository.UpdateCarAsync(carToMarkSold);
+                if (updatedCar == null)
+                    throw new ValidationException("Failed to update car status after sale completion.");
             }
 
             return updatedSale;
         }
+
+
+
 
 
         // ==============================

@@ -11,5 +11,8 @@ namespace backend.Repositories.Interfaces
         Task<Supplier> UpdateSupplierAsync(Supplier supplier);
         Task<bool> DeleteSupplierAsync(int id);
         Task<bool> ExistsByIdAsync(int? id);
+        Task<bool> HasOrdersAsync(int supplierId);
+        Task<bool> HasCarsAsync(int supplierId);
+
     }
 }
