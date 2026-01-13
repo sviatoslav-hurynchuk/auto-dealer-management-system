@@ -80,6 +80,24 @@ namespace backend.Repositories
 
             return await connection.QuerySingleOrDefaultAsync<Employee>(sql, new { Id = id });
         }
+        public async Task<Employee?> GetEmployeeByEmailAsync(string email)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            const string sql = @"
+        SELECT 
+            Id,
+            FullName,
+            Position,
+            Phone,
+            Email,
+            IsActive
+        FROM Employees
+        WHERE Email = @Email;
+    ";
+
+            return await connection.QuerySingleOrDefaultAsync<Employee>(sql, new { Email = email });
+        }
 
         // ==============================
         // CREATE
