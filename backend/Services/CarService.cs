@@ -53,6 +53,7 @@ namespace backend.Services
         {
             ValidateCarForCreate(car);
             await ValidateCarForeignKeysAsync(car);
+
             var createdCar = await _carRepository.CreateCarAsync(car);
             if (createdCar == null)
                 throw new ValidationException("Failed to create car.");
@@ -113,6 +114,9 @@ namespace backend.Services
             var existingCar = await _carRepository.GetCarByIdAsync(car.Id);
             if (existingCar == null)
                 throw new ValidationException($"Car with id {car.Id} not found.");
+
+            if(existingCar.Vin != car.Vin)
+                throw new ValidationException($"VIN cannot be changed in already existing car");
 
             var updatedCar = await _carRepository.UpdateCarAsync(car);
             if (updatedCar == null)
@@ -203,10 +207,6 @@ namespace backend.Services
             var supplier = await _supplierRepository.ExistsByIdAsync(car.SupplierId);
             if (supplier == false)
                 throw new ValidationException($"Supplier with id {car.SupplierId} not found.");
-
-            var vinExists = await _carRepository.VINExistsAsync(car.Vin);
-            if(vinExists == true)
-                throw new ValidationException($"Car with VIN {car.Vin} already exists.");
 
         }
 

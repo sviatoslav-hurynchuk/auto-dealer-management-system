@@ -76,5 +76,38 @@ namespace backend.Repositories
             using var connection = new SqlConnection(_connectionString);
             return await connection.QueryFirstOrDefaultAsync<int?>(sql, new { Id = id }) != null;
         }
+
+        public async Task<bool> HasOrdersAsync(int supplierId)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            const string sql = @"
+            SELECT CASE WHEN EXISTS (
+                SELECT 1
+                FROM Orders
+                WHERE SupplierId = @SupplierId
+            ) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
+        ";
+
+            return await connection.QuerySingleAsync<bool>(sql, new { SupplierId = supplierId });
+        }
+
+        // ==============================
+        // Перевірка на наявність машин
+        // ==============================
+        public async Task<bool> HasCarsAsync(int supplierId)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            const string sql = @"
+            SELECT CASE WHEN EXISTS (
+                SELECT 1
+                FROM Cars
+                WHERE SupplierId = @SupplierId
+            ) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
+        ";
+
+            return await connection.QuerySingleAsync<bool>(sql, new { SupplierId = supplierId });
+        }
     }
 }
