@@ -99,10 +99,12 @@ namespace backend.Services
 
             ValidateSale(sale);
 
+            // Отримуємо поточний запис продажу
             var existingSale = await _saleRepository.GetSaleByIdAsync(sale.Id);
             if (existingSale == null)
                 throw new ValidationException($"Sale with id {sale.Id} not found.");
 
+            // Перевірка Customer
             if (sale.CustomerId != existingSale.CustomerId)
             {
                 var customerExists = await _customerRepository.ExistsByIdAsync(sale.CustomerId);
@@ -110,6 +112,7 @@ namespace backend.Services
                     throw new ValidationException("Customer not found.");
             }
 
+            // Перевірка Employee
             if (sale.EmployeeId != existingSale.EmployeeId)
             {
                 var employee = await _employeeRepository.GetEmployeeByIdAsync(sale.EmployeeId);
@@ -120,10 +123,11 @@ namespace backend.Services
                     throw new ValidationException("Employee is inactive.");
             }
 
+            // Перевірка Car
             if (sale.CarId != existingSale.CarId)
             {
                 if (existingSale.Status == "Completed")
-                    throw new ValidationException("Cannot change car for completed sale.");
+                    throw new ValidationException("Cannot change car for a completed sale.");
 
                 var car = await _carRepository.GetCarByIdAsync(sale.CarId);
                 if (car == null)
@@ -133,10 +137,7 @@ namespace backend.Services
                     throw new ValidationException("Car is already sold.");
             }
 
-            var updatedSale = await _saleRepository.UpdateSaleAsync(sale);
-            if (updatedSale == null)
-                throw new ValidationException("Failed to update sale.");
-
+            // Додаткова перевірка для завершення продажу
             if (sale.Status == "Completed" && existingSale.Status != "Completed")
             {
                 var car = await _carRepository.GetCarByIdAsync(sale.CarId);
@@ -145,7 +146,17 @@ namespace backend.Services
 
                 if (car.Status == "Sold")
                     throw new ValidationException("Car is already sold.");
+            }
 
+            // Оновлюємо продаж
+            var updatedSale = await _saleRepository.UpdateSaleAsync(sale);
+            if (updatedSale == null)
+                throw new ValidationException("Failed to update sale.");
+
+            // Якщо статус став Completed — оновлюємо статус авто
+            if (sale.Status == "Completed" && existingSale.Status != "Completed")
+            {
+                var car = await _carRepository.GetCarByIdAsync(sale.CarId);
                 car.Status = "Sold";
 
                 var updatedCar = await _carRepository.UpdateCarAsync(car);
@@ -155,6 +166,7 @@ namespace backend.Services
 
             return updatedSale;
         }
+
 
 
 

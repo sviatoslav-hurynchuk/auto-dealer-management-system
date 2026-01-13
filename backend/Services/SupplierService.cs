@@ -117,6 +117,9 @@ namespace backend.Services
             if (!string.IsNullOrWhiteSpace(supplier.CompanyName) && supplier.CompanyName.Length > 100)
                 throw new ValidationException("Company name is too long.");
 
+            if (supplier.CompanyName == "")
+            throw new ValidationException("Company name cannot be an empty string");
+
             if (!string.IsNullOrWhiteSpace(supplier.Email))
                 ValidateEmail(supplier.Email);
 

@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using backend.Exceptions;
+﻿using backend.Exceptions;
 using backend.Models;
 using backend.Repositories.Interfaces;
 

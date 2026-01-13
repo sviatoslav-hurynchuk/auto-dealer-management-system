@@ -53,7 +53,7 @@ namespace backend.Repositories
                     IsActive
                 FROM Employees
                 WHERE IsActive = 1
-                ORDER BY id DESC;
+                ORDER BY id;
             ";
 
             return await connection.QueryAsync<Employee>(sql);
