@@ -107,8 +107,7 @@ namespace backend.Services
             // Перевірка Customer
             if (sale.CustomerId != existingSale.CustomerId)
             {
-                var customerExists = await _customerRepository.ExistsByIdAsync(sale.CustomerId);
-                if (!customerExists)
+                if (!await _customerRepository.ExistsByIdAsync(sale.CustomerId))
                     throw new ValidationException("Customer not found.");
             }
 
@@ -122,6 +121,9 @@ namespace backend.Services
                 if (!employee.IsActive)
                     throw new ValidationException("Employee is inactive.");
             }
+
+            // Кеш авто для подальших перевірок
+            Car? carToMarkSold = null;
 
             // Перевірка Car
             if (sale.CarId != existingSale.CarId)
@@ -137,14 +139,14 @@ namespace backend.Services
                     throw new ValidationException("Car is already sold.");
             }
 
-            // Додаткова перевірка для завершення продажу
+            // Додаткова перевірка для переходу в Completed
             if (sale.Status == "Completed" && existingSale.Status != "Completed")
             {
-                var car = await _carRepository.GetCarByIdAsync(sale.CarId);
-                if (car == null)
+                carToMarkSold = await _carRepository.GetCarByIdAsync(sale.CarId);
+                if (carToMarkSold == null)
                     throw new ValidationException("Car not found.");
 
-                if (car.Status == "Sold")
+                if (carToMarkSold.Status == "Sold")
                     throw new ValidationException("Car is already sold.");
             }
 
@@ -154,18 +156,17 @@ namespace backend.Services
                 throw new ValidationException("Failed to update sale.");
 
             // Якщо статус став Completed — оновлюємо статус авто
-            if (sale.Status == "Completed" && existingSale.Status != "Completed")
+            if (carToMarkSold != null)
             {
-                var car = await _carRepository.GetCarByIdAsync(sale.CarId);
-                car.Status = "Sold";
-
-                var updatedCar = await _carRepository.UpdateCarAsync(car);
+                carToMarkSold.Status = "Sold";
+                var updatedCar = await _carRepository.UpdateCarAsync(carToMarkSold);
                 if (updatedCar == null)
                     throw new ValidationException("Failed to update car status after sale completion.");
             }
 
             return updatedSale;
         }
+
 
 
 
