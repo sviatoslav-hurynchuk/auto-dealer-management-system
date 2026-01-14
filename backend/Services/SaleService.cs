@@ -99,19 +99,16 @@ namespace backend.Services
 
             ValidateSale(sale);
 
-            // Отримуємо поточний запис продажу
             var existingSale = await _saleRepository.GetSaleByIdAsync(sale.Id);
             if (existingSale == null)
                 throw new ValidationException($"Sale with id {sale.Id} not found.");
 
-            // Перевірка Customer
             if (sale.CustomerId != existingSale.CustomerId)
             {
                 if (!await _customerRepository.ExistsByIdAsync(sale.CustomerId))
                     throw new ValidationException("Customer not found.");
             }
 
-            // Перевірка Employee
             if (sale.EmployeeId != existingSale.EmployeeId)
             {
                 var employee = await _employeeRepository.GetEmployeeByIdAsync(sale.EmployeeId);
@@ -122,10 +119,8 @@ namespace backend.Services
                     throw new ValidationException("Employee is inactive.");
             }
 
-            // Кеш авто для подальших перевірок
             Car? carToMarkSold = null;
 
-            // Перевірка Car
             if (sale.CarId != existingSale.CarId)
             {
                 if (existingSale.Status == "Completed")
@@ -139,7 +134,6 @@ namespace backend.Services
                     throw new ValidationException("Car is already sold.");
             }
 
-            // Додаткова перевірка для переходу в Completed
             if (sale.Status == "Completed" && existingSale.Status != "Completed")
             {
                 carToMarkSold = await _carRepository.GetCarByIdAsync(sale.CarId);
@@ -150,12 +144,10 @@ namespace backend.Services
                     throw new ValidationException("Car is already sold.");
             }
 
-            // Оновлюємо продаж
             var updatedSale = await _saleRepository.UpdateSaleAsync(sale);
             if (updatedSale == null)
                 throw new ValidationException("Failed to update sale.");
 
-            // Якщо статус став Completed — оновлюємо статус авто
             if (carToMarkSold != null)
             {
                 carToMarkSold.Status = "Sold";

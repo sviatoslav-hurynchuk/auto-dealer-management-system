@@ -37,3 +37,4 @@ Thumbs.db
 # JetBrains IDE (WebStorm, Rider)
 # ===============================
 .idea/
+/database/AutoDealer.bak

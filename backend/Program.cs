@@ -9,11 +9,6 @@ using backend.Services;
 using DotNetEnv;
 using GraphQL;
 using GraphQL.Types;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Cors.Infrastructure;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.AccessControl;
-using System.Text;
 
 namespace backend
 {

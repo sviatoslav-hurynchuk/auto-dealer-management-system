@@ -128,7 +128,6 @@ namespace backend.Services
             if (employee == null)
                 throw new ValidationException($"Employee with id {id} not found.");
 
-            // 🔒 ключова бізнес-перевірка
             if (await _saleRepository.ExistsByEmployeeIdAsync(id))
                 throw new ValidationException(
                     "Employee cannot be deleted because they have sales."
