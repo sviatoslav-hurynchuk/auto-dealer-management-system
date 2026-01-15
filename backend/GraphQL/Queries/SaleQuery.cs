@@ -30,6 +30,13 @@ namespace backend.GraphQL.Queries
                 {
                     return await saleService.GetAllSalesAsync();
                 });
+
+            Field<ListGraphType<EmployeeSalesStatsType>>("employeeSalesStats")
+    .ResolveAsync(async context =>
+    {
+        return await saleService.GetEmployeeSalesStatsAsync();
+    });
+
         }
     }
 }

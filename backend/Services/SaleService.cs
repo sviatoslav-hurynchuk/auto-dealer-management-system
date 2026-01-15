@@ -46,6 +46,10 @@ namespace backend.Services
 
             return sale;
         }
+        public async Task<IEnumerable<EmployeeSalesStats>> GetEmployeeSalesStatsAsync()
+        {
+            return await _saleRepository.GetEmployeeSalesStatsAsync();
+        }
 
         // ==============================
         // CREATE
@@ -75,15 +79,6 @@ namespace backend.Services
             var createdSale = await _saleRepository.CreateSaleAsync(sale);
             if (createdSale == null)
                 throw new ValidationException("Failed to create sale.");
-
-            if (sale.Status == "Completed")
-            {
-                car.Status = "Sold";
-
-                var updatedCar = await _carRepository.UpdateCarAsync(car);
-                if (updatedCar == null)
-                    throw new ValidationException("Failed to update car status after sale creation.");
-            }
 
             return createdSale;
         }
