@@ -75,6 +75,32 @@ namespace backend.Repositories
         }
 
         // ==============================
+        // GET CARS WITH SUPPLIER AND SALES INFO
+        // ==============================
+        public async Task<IEnumerable<CarWithStats>> GetCarsWithStatsAsync()
+        {
+            var sql = @"
+        SELECT 
+            c.id,
+            c.Model,
+            c.VIN,
+            c.Price,
+            c.Status,
+            ISNULL(s.CompanyName, '') AS SupplierName,
+            (SELECT COUNT(*) FROM Orders o WHERE o.CarID = c.id) AS OrdersCount,
+            (SELECT MAX(saleDate) FROM Sales sa WHERE sa.CarID = c.id) AS LastSaleDate
+        FROM Cars c
+        LEFT JOIN Suppliers s ON c.SupplierID = s.id
+        ORDER BY c.id;
+    ";
+
+            using var connection = new SqlConnection(_connectionString);
+            return await connection.QueryAsync<CarWithStats>(sql);
+        }
+
+
+
+        // ==============================
         // CREATE
         // ==============================
         public async Task<Car?> CreateCarAsync(Car car)

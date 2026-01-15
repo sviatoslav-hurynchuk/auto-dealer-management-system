@@ -24,6 +24,12 @@ namespace backend.GraphQL.Queries
                 {
                     return await carService.GetAllCarsAsync();
                 });
+
+            Field<ListGraphType<CarWithSupplierAndSalesType>>("getCarsWithSupplierAndSales")
+                .ResolveAsync(async context =>
+                {
+                    return await carService.GetCarsWithSupplierAndSalesAsync();
+                });
         }
     }
 }
