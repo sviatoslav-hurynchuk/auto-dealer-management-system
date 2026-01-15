@@ -47,6 +47,16 @@ namespace backend.Services
         }
 
         // ==============================
+        // GET CARS WITH SUPPLIER AND SALES INFO
+        // ==============================
+        public async Task<IEnumerable<dynamic>> GetCarsWithSupplierAndSalesAsync()
+        {
+            var carsWithInfo = await _carRepository.GetCarsWithStatsAsync();
+            return carsWithInfo;
+        }
+
+
+        // ==============================
         // CREATE
         // ==============================
         public async Task<Car> CreateCarAsync(Car car)

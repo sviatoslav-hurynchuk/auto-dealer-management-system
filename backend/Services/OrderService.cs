@@ -50,7 +50,6 @@ namespace backend.Services
         {
             ValidateOrder(order);
 
-            // Перевірка авто
             var car = await _carRepository.GetCarByIdAsync(order.CarId);
             if (car == null)
                 throw new ValidationException("Car not found.");
@@ -58,7 +57,6 @@ namespace backend.Services
             if (car.Status != "Pending")
                 throw new ValidationException("Car cannot be ordered in its current status.");
 
-            // Перевірка постачальника
             var supplier = await _supplierRepository.GetSupplierByIdAsync(order.SupplierId);
             if (supplier == null)
                 throw new ValidationException("Supplier not found.");
@@ -84,7 +82,6 @@ namespace backend.Services
             if (existingOrder == null)
                 throw new ValidationException($"Order with id {order.Id} not found.");
 
-            // Якщо змінився CarId, перевіряємо нове авто
             if (existingOrder.CarId != order.CarId)
             {
                 var car = await _carRepository.GetCarByIdAsync(order.CarId);
@@ -95,7 +92,6 @@ namespace backend.Services
                     throw new ValidationException("Car cannot be ordered in its current status.");
             }
 
-            // Якщо змінився SupplierId, перевіряємо нового постачальника
             if (existingOrder.SupplierId != order.SupplierId)
             {
                 var supplier = await _supplierRepository.GetSupplierByIdAsync(order.SupplierId);

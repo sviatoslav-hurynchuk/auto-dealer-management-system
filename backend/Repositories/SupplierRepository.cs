@@ -92,9 +92,6 @@ namespace backend.Repositories
             return await connection.QuerySingleAsync<bool>(sql, new { SupplierId = supplierId });
         }
 
-        // ==============================
-        // Перевірка на наявність машин
-        // ==============================
         public async Task<bool> HasCarsAsync(int supplierId)
         {
             using var connection = new SqlConnection(_connectionString);

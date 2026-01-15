@@ -6,6 +6,7 @@ namespace backend.Repositories.Interfaces
     {
         Task<IEnumerable<Car>> GetAllCarsAsync();
         Task<Car?> GetCarByIdAsync(int id);
+        Task<IEnumerable<CarWithStats>> GetCarsWithStatsAsync();
         Task<Car?> CreateCarAsync(Car car);
         Task<Car?> UpdateCarAsync(Car car);
         Task<bool> DeleteCarAsync(int id);
