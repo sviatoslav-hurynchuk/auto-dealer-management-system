@@ -2,6 +2,7 @@
 using backend.Repositories.Interfaces;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace backend.Repositories
 {
@@ -59,6 +60,16 @@ namespace backend.Repositories
 
             return await connection.QuerySingleOrDefaultAsync<Sale>(sql, new { Id = id });
         }
+        public async Task<IEnumerable<EmployeeSalesStats>> GetEmployeeSalesStatsAsync()
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            return await connection.QueryAsync<EmployeeSalesStats>(
+                "GetEmployeeSalesStats",
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
 
         // ==============================
         // CREATE
@@ -68,22 +79,26 @@ namespace backend.Repositories
             using var connection = new SqlConnection(_connectionString);
 
             const string sql = @"
-                INSERT INTO Sales
-                (CarId, CustomerId, EmployeeId, SaleDate, FinalPrice, Status)
-                OUTPUT
-                    INSERTED.Id,
-                    INSERTED.CarId,
-                    INSERTED.CustomerId,
-                    INSERTED.EmployeeId,
-                    INSERTED.SaleDate,
-                    INSERTED.FinalPrice,
-                    INSERTED.Status
-                VALUES
-                (@CarId, @CustomerId, @EmployeeId, @SaleDate, @FinalPrice, @Status);
-            ";
+        INSERT INTO Sales
+        (CarId, CustomerId, EmployeeId, SaleDate, FinalPrice, Status)
+        VALUES
+        (@CarId, @CustomerId, @EmployeeId, @SaleDate, @FinalPrice, @Status);
+
+        SELECT TOP 1
+            Id,
+            CarId,
+            CustomerId,
+            EmployeeId,
+            SaleDate,
+            FinalPrice,
+            Status
+        FROM Sales
+        WHERE Id = SCOPE_IDENTITY();
+    ";
 
             return await connection.QuerySingleOrDefaultAsync<Sale>(sql, sale);
         }
+
 
         // ==============================
         // UPDATE

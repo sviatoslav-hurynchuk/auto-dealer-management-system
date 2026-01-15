@@ -6,6 +6,7 @@ namespace backend.Repositories.Interfaces
     {
         Task<IEnumerable<Sale>> GetAllSalesAsync();
         Task<Sale?> GetSaleByIdAsync(int id);
+        Task<IEnumerable<EmployeeSalesStats>> GetEmployeeSalesStatsAsync();
         Task<Sale?> CreateSaleAsync(Sale sale);
         Task<Sale?> UpdateSaleAsync(Sale sale);
         Task<bool> DeleteSaleAsync(int id);
