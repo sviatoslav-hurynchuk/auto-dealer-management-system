@@ -8,10 +8,9 @@ namespace backend.Repositories
     public class EmployeeRepository : IEmployeeRepository
     {
         private readonly IDbConnectionFactory _connectionFactory;
-
-        public EmployeeRepository(string connectionString)
+        public EmployeeRepository(IDbConnectionFactory connectionFactory)
         {
-            _connectionString = connectionString;
+            _connectionFactory = connectionFactory;
         }
 
         // ==============================
@@ -19,7 +18,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<IEnumerable<Employee>> GetAllEmployeesAsync()
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT
@@ -41,7 +40,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<IEnumerable<Employee>> GetAllActiveEmployeesAsync()
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT
@@ -64,7 +63,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Employee?> GetEmployeeByIdAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT
@@ -82,7 +81,7 @@ namespace backend.Repositories
         }
         public async Task<Employee?> GetEmployeeByEmailAsync(string email)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
         SELECT 
@@ -104,7 +103,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Employee?> CreateEmployeeAsync(Employee employee)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 INSERT INTO Employees
@@ -128,7 +127,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Employee?> UpdateEmployeeAsync(Employee employee)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 UPDATE Employees
@@ -156,7 +155,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<bool> DeleteEmployeeAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"DELETE FROM Employees WHERE id = @Id";
 
@@ -169,7 +168,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<bool> DeactivateEmployeeAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 UPDATE Employees
@@ -186,7 +185,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<bool> ExistsByIdAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"SELECT 1 FROM Employees WHERE id = @Id";
 

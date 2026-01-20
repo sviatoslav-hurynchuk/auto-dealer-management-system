@@ -1,43 +1,60 @@
+-- 1. Перемикаємось на системну базу master, щоб створити Логіни
+USE master;
+GO
+
+-- === КОРИСТУВАЧ 1: ПОВНИЙ АДМІН ===
+-- Створюємо логін (вхід на сервер)
+IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'test_admin')
+    BEGIN
+        CREATE LOGIN test_admin WITH PASSWORD = 'TestPassword123!', CHECK_POLICY = OFF;
+    END
+GO
+
+-- === КОРИСТУВАЧ 2: МЕНЕДЖЕР (Читання + Запис) ===
+IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'test_manager')
+    BEGIN
+        CREATE LOGIN test_manager WITH PASSWORD = 'TestPassword123!', CHECK_POLICY = OFF;
+    END
+GO
+
+-- === КОРИСТУВАЧ 3: ЧИТАЧ (Тільки читання) ===
+IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'test_reader')
+    BEGIN
+        CREATE LOGIN test_reader WITH PASSWORD = 'TestPassword123!', CHECK_POLICY = OFF;
+    END
+GO
+
+-- 2. Перемикаємось на твою базу даних
+-- ВАЖЛИВО: Переконайся, що назва бази правильна
 USE [auto-dealer-management-system];
 GO
 
--- Адмін
-CREATE ROLE db_admin_app;
+-- === НАЛАШТУВАННЯ test_admin (db_owner) ===
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'test_admin')
+    BEGIN
+        CREATE USER test_admin FOR LOGIN test_admin;
+    END
+-- Даємо повні права
+ALTER ROLE db_owner ADD MEMBER test_admin;
 GO
 
--- Менеджер
-CREATE ROLE db_manager_app;
+-- === НАЛАШТУВАННЯ test_manager (db_datareader + db_datawriter) ===
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'test_manager')
+    BEGIN
+        CREATE USER test_manager FOR LOGIN test_manager;
+    END
+-- Даємо права на читання та запис даних
+ALTER ROLE db_datareader ADD MEMBER test_manager;
+ALTER ROLE db_datawriter ADD MEMBER test_manager;
 GO
 
--- Read-only користувач
-CREATE ROLE db_reader_app;
+-- === НАЛАШТУВАННЯ test_reader (db_datareader) ===
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'test_reader')
+    BEGIN
+        CREATE USER test_reader FOR LOGIN test_reader;
+    END
+-- Даємо права тільки на читання
+ALTER ROLE db_datareader ADD MEMBER test_reader;
 GO
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::dbo TO db_admin_app;
-GRANT EXECUTE TO db_admin_app;
-
-GRANT SELECT, INSERT, UPDATE ON SCHEMA::dbo TO db_manager_app;
-GRANT EXECUTE TO db_manager_app;
-
-GRANT SELECT ON SCHEMA::dbo TO db_reader_app;
-
--- CREATE LOGINS WITH PASSWORDS
--- THEN ->
-
-USE [auto-dealer-management-system];
-GO
-
-CREATE USER app_admin FOR LOGIN app_admin;
-CREATE USER app_manager FOR LOGIN app_manager;
-CREATE USER app_reader FOR LOGIN app_reader;
-GO
-
-ALTER ROLE db_admin_app ADD MEMBER app_admin;
-ALTER ROLE db_manager_app ADD MEMBER app_manager;
-ALTER ROLE db_reader_app ADD MEMBER app_reader;
-GO
-
-EXEC sp_helpuser;
-EXEC sp_helprolemember 'db_admin_app';
-
-
+PRINT 'Користувачі успішно створені!';

@@ -8,30 +8,29 @@ namespace backend.Repositories
     public class SupplierRepository : ISupplierRepository
     {
         private readonly IDbConnectionFactory _connectionFactory;
-
-        public SupplierRepository(string connectionString)
+        public SupplierRepository(IDbConnectionFactory connectionFactory)
         {
-            _connectionString = connectionString;
+            _connectionFactory = connectionFactory;
         }
 
         public async Task<IEnumerable<Supplier>> GetAllSuppliersAsync()
         {
             const string sql = "SELECT * FROM Suppliers";
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryAsync<Supplier>(sql);
         }
 
         public async Task<Supplier?> GetSupplierByIdAsync(int? id)
         {
             const string sql = "SELECT * FROM Suppliers WHERE Id = @Id";
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryFirstOrDefaultAsync<Supplier>(sql, new { Id = id });
         }
 
         public async Task<Supplier?> GetSupplierByCompanyNameAsync(string companyName)
         {
             const string sql = "SELECT * FROM Suppliers WHERE CompanyName = @CompanyName";
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryFirstOrDefaultAsync<Supplier>(sql, new { CompanyName = companyName });
         }
 
@@ -43,7 +42,7 @@ namespace backend.Repositories
                 VALUES (@CompanyName, @ContactName, @Phone, @Email)
             """;
 
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
             return await connection.QuerySingleAsync<Supplier>(sql, supplier);
         }
 
@@ -59,27 +58,27 @@ namespace backend.Repositories
                 WHERE Id = @Id
             """;
 
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
             return await connection.QuerySingleAsync<Supplier>(sql, supplier);
         }
 
         public async Task<bool> DeleteSupplierAsync(int id)
         {
             const string sql = "DELETE FROM Suppliers WHERE Id = @Id";
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
             return await connection.ExecuteAsync(sql, new { Id = id }) > 0;
         }
 
         public async Task<bool> ExistsByIdAsync(int? id)
         {
             const string sql = "SELECT 1 FROM Suppliers WHERE Id = @Id";
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryFirstOrDefaultAsync<int?>(sql, new { Id = id }) != null;
         }
 
         public async Task<bool> HasOrdersAsync(int supplierId)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
             SELECT CASE WHEN EXISTS (
@@ -94,7 +93,7 @@ namespace backend.Repositories
 
         public async Task<bool> HasCarsAsync(int supplierId)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
             SELECT CASE WHEN EXISTS (

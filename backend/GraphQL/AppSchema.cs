@@ -37,7 +37,7 @@ namespace backend.GraphQL
                         ConflictException => new ExecutionError(ex.Message, ex),
                         NotFoundException => new ExecutionError(ex.Message, ex),
                         ValidationException => new ExecutionError(ex.Message, ex),
-                        _ => new ExecutionError("Internal server error", ex)
+                        _ => new ExecutionError(ex.Message, ex)
                     };
                 }
             });
