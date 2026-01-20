@@ -7,7 +7,7 @@ namespace backend.Repositories
 {
     public class MakeRepository : IMakeRepository
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
 
         public MakeRepository(string connectionString)
         {

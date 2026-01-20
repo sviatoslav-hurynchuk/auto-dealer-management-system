@@ -7,7 +7,7 @@ namespace backend.Repositories
 {
     public class ServiceRequestRepository : IServiceRequestRepository
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
 
         public ServiceRequestRepository(string connectionString)
         {

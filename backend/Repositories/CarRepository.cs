@@ -7,7 +7,7 @@ namespace backend.Repositories
 {
     public class CarRepository : ICarRepository
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
 
         public CarRepository(string connectionString)
         {
@@ -19,7 +19,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<IEnumerable<Car>> GetAllCarsAsync()
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT 
@@ -49,7 +49,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Car?> GetCarByIdAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT 

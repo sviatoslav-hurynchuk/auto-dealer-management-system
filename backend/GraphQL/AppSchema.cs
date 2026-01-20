@@ -32,10 +32,10 @@ namespace backend.GraphQL
 
                     throw ex switch
                     {
-                        UnauthorizedException => new ExecutionError("Authentication required", ex),
-                        ForbiddenException => new ExecutionError("Access denied", ex),
-                        ConflictException => new ExecutionError("Unable to complete operation", ex),
-                        NotFoundException => new ExecutionError("Resource not found", ex),
+                        UnauthorizedException => new ExecutionError(ex.Message, ex),
+                        ForbiddenException => new ExecutionError(ex.Message, ex),
+                        ConflictException => new ExecutionError(ex.Message, ex),
+                        NotFoundException => new ExecutionError(ex.Message, ex),
                         ValidationException => new ExecutionError(ex.Message, ex),
                         _ => new ExecutionError("Internal server error", ex)
                     };

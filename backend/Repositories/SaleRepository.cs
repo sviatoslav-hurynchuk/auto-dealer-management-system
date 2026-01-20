@@ -8,7 +8,7 @@ namespace backend.Repositories
 {
     public class SaleRepository : ISaleRepository
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
 
         public SaleRepository(string connectionString)
         {

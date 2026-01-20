@@ -7,7 +7,7 @@ namespace backend.Repositories
 {
     public class EmployeeRepository : IEmployeeRepository
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
 
         public EmployeeRepository(string connectionString)
         {

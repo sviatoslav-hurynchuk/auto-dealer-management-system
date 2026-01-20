@@ -7,7 +7,7 @@ namespace backend.Repositories
 {
     public class OrderRepository : IOrderRepository
     {
-        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
 
         public OrderRepository(string connectionString)
         {
