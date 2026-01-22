@@ -11,10 +11,9 @@ namespace backend.GraphQL.Queries
         public CarQuery(CarService carService, IMakeRepository makeRepository)
         {
             Name = "CarQueries";
-
-
             Field<ListGraphType<CarType>>("searchCars")
     .Argument<NonNullGraphType<CarSearchInputType>>("filter")
+    .Argument<StringGraphType>("makeName")
     .ResolveAsync(async context =>
     {
         var filter = context.GetArgument<CarSearchParams>("filter");

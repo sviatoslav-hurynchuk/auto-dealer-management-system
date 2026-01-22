@@ -25,12 +25,18 @@ namespace backend.Repositories
             using var cmd = connection.CreateCommand();
 
             var sql = new StringBuilder(@"
-        SELECT Id, Model, Year, Price, VIN, Status
+        SELECT Id, MakeId, Model, Year, Price, VIN, Status
         FROM Cars
         WHERE 1 = 1
     ");
 
             // 🔹 FILTERS
+            if (filter.MakeId.HasValue)
+            {
+                sql.Append(" AND MakeId = @MakeId");
+                cmd.Parameters.AddWithValue("@MakeId", filter.MakeId.Value);
+            }
+
             if (!string.IsNullOrWhiteSpace(filter.Model))
             {
                 sql.Append(" AND Model LIKE @Model");
@@ -85,8 +91,12 @@ namespace backend.Repositories
             // 🔹 PAGINATION
             sql.Append(" OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
 
-            cmd.Parameters.AddWithValue("@Offset", (filter.Page - 1) * filter.PageSize);
-            cmd.Parameters.AddWithValue("@PageSize", filter.PageSize);
+            var page = filter.Page > 0 ? filter.Page : 1;
+            var pageSize = filter.PageSize > 0 ? filter.PageSize : 20;
+
+            cmd.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
+            cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
 
             cmd.CommandText = sql.ToString();
 
@@ -98,11 +108,12 @@ namespace backend.Repositories
                 cars.Add(new Car
                 {
                     Id = reader.GetInt32(0),
-                    Model = reader.GetString(1),
-                    Year = reader.GetInt32(2),
-                    Price = reader.GetDecimal(3),
-                    Vin = reader.GetString(4),
-                    Status = reader.GetString(5)
+                    MakeId = reader.GetInt32(1),
+                    Model = reader.GetString(2),
+                    Year = reader.GetInt32(3),
+                    Price = reader.GetDecimal(4),
+                    Vin = reader.GetString(5),
+                    Status = reader.GetString(6)
                 });
             }
 
