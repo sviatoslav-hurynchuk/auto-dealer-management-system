@@ -7,18 +7,17 @@ namespace backend.Repositories
 {
     public class OrderRepository : IOrderRepository
     {
-        private readonly string _connectionString;
-
-        public OrderRepository(string connectionString)
+        private readonly IDbConnectionFactory _connectionFactory;
+        public OrderRepository(IDbConnectionFactory connectionFactory)
         {
-            _connectionString = connectionString;
+            _connectionFactory = connectionFactory;
         }
 
         public async Task<IEnumerable<Order>> GetAllOrdersAsync()
         {
             const string sql = "SELECT * FROM Orders";
 
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryAsync<Order>(sql);
         }
 
@@ -29,7 +28,7 @@ namespace backend.Repositories
             WHERE Id = @Id
             """;
 
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryFirstOrDefaultAsync<Order>(sql, new { Id = id });
         }
 
@@ -42,7 +41,7 @@ namespace backend.Repositories
             SELECT * FROM Orders WHERE Id = SCOPE_IDENTITY();
             """;
 
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryFirstOrDefaultAsync<Order>(sql, order);
         }
 
@@ -59,7 +58,7 @@ namespace backend.Repositories
             SELECT * FROM Orders WHERE Id = @Id;
             """;
 
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryFirstOrDefaultAsync<Order>(sql, order);
         }
 
@@ -70,7 +69,7 @@ namespace backend.Repositories
             WHERE Id = @Id
             """;
 
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
             var affected = await connection.ExecuteAsync(sql, new { Id = id });
             return affected > 0;
         }
@@ -83,7 +82,7 @@ namespace backend.Repositories
             WHERE CarId = @CarId
             """;
 
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
             var result = await connection.QueryFirstOrDefaultAsync<int?>(sql, new { CarId = carId });
             return result.HasValue;
         }

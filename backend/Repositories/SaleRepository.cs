@@ -8,11 +8,10 @@ namespace backend.Repositories
 {
     public class SaleRepository : ISaleRepository
     {
-        private readonly string _connectionString;
-
-        public SaleRepository(string connectionString)
+        private readonly IDbConnectionFactory _connectionFactory;
+        public SaleRepository(IDbConnectionFactory connectionFactory)
         {
-            _connectionString = connectionString;
+            _connectionFactory = connectionFactory;
         }
 
         // ==============================
@@ -20,7 +19,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<IEnumerable<Sale>> GetAllSalesAsync()
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT
@@ -43,7 +42,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Sale?> GetSaleByIdAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT
@@ -62,7 +61,7 @@ namespace backend.Repositories
         }
         public async Task<IEnumerable<EmployeeSalesStats>> GetEmployeeSalesStatsAsync()
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             return await connection.QueryAsync<EmployeeSalesStats>(
                 "GetEmployeeSalesStats",
@@ -76,7 +75,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Sale?> CreateSaleAsync(Sale sale)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
         INSERT INTO Sales
@@ -105,7 +104,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Sale?> UpdateSaleAsync(Sale sale)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 UPDATE Sales
@@ -135,7 +134,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<bool> DeleteSaleAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"DELETE FROM Sales WHERE Id = @Id";
 
@@ -151,14 +150,14 @@ namespace backend.Repositories
             WHERE CarId = @CarId
             """;
 
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
             var result = await connection.QueryFirstOrDefaultAsync<int?>(sql, new { CarId = carId });
             return result.HasValue;
         }
 
         public async Task<bool> ExistsByEmployeeIdAsync(int employeeId)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
         SELECT 1
@@ -182,7 +181,7 @@ namespace backend.Repositories
         WHERE CustomerId = @CustomerId
     """;
 
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryFirstOrDefaultAsync<int?>(
                 sql,
                 new { CustomerId = customerId }

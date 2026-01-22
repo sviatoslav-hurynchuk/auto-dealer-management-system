@@ -7,11 +7,10 @@ namespace backend.Repositories
 {
     public class CarRepository : ICarRepository
     {
-        private readonly string _connectionString;
-
-        public CarRepository(string connectionString)
+        private readonly IDbConnectionFactory _connectionFactory;
+        public CarRepository(IDbConnectionFactory connectionFactory)
         {
-            _connectionString = connectionString;
+            _connectionFactory = connectionFactory;
         }
 
         // ==============================
@@ -19,7 +18,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<IEnumerable<Car>> GetAllCarsAsync()
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT 
@@ -49,7 +48,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Car?> GetCarByIdAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT 
@@ -94,7 +93,7 @@ namespace backend.Repositories
         ORDER BY c.id;
     ";
 
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryAsync<CarWithStats>(sql);
         }
 
@@ -105,7 +104,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Car?> CreateCarAsync(Car car)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 INSERT INTO Cars
@@ -137,7 +136,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Car?> UpdateCarAsync(Car car)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 UPDATE Cars
@@ -181,7 +180,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<bool> DeleteCarAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"DELETE FROM Cars WHERE id = @Id";
 
@@ -191,7 +190,7 @@ namespace backend.Repositories
 
         public async Task<bool> ExistsByMakeIdAsync(int makeId)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
             const string sql = "SELECT 1 FROM Cars WHERE MakeId = @MakeId";
             var result = await connection.QueryFirstOrDefaultAsync<int?>(sql, new { MakeId = makeId });
             return result.HasValue;
@@ -199,7 +198,7 @@ namespace backend.Repositories
 
         public async Task<bool> VINExistsAsync(string vin)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
             const string sql = "SELECT 1 FROM Cars WHERE VIN = @Vin";
             var result = await connection.QueryFirstOrDefaultAsync<int?>(sql, new { Vin = vin });
             return result.HasValue;

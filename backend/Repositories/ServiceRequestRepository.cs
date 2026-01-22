@@ -7,11 +7,10 @@ namespace backend.Repositories
 {
     public class ServiceRequestRepository : IServiceRequestRepository
     {
-        private readonly string _connectionString;
-
-        public ServiceRequestRepository(string connectionString)
+        private readonly IDbConnectionFactory _connectionFactory;
+        public ServiceRequestRepository(IDbConnectionFactory connectionFactory)
         {
-            _connectionString = connectionString;
+            _connectionFactory = connectionFactory;
         }
 
         // ==============================
@@ -19,7 +18,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<IEnumerable<ServiceRequest>> GetAllRequestsAsync()
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = """
                 SELECT
@@ -40,7 +39,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<ServiceRequest?> GetRequestByIdAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = """
                 SELECT
@@ -64,7 +63,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<IEnumerable<ServiceRequest>> GetRequestsByCarIdAsync(int carId)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = """
                 SELECT
@@ -89,7 +88,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<ServiceRequest?> CreateRequestAsync(ServiceRequest request)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = """
                 INSERT INTO ServiceRequests
@@ -112,7 +111,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<ServiceRequest?> UpdateRequestAsync(ServiceRequest request)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = """
                 UPDATE ServiceRequests
@@ -137,7 +136,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<bool> DeleteRequestAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = "DELETE FROM ServiceRequests WHERE Id = @Id";
 

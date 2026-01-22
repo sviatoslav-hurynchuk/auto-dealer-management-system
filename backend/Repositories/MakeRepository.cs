@@ -7,11 +7,10 @@ namespace backend.Repositories
 {
     public class MakeRepository : IMakeRepository
     {
-        private readonly string _connectionString;
-
-        public MakeRepository(string connectionString)
+        private readonly IDbConnectionFactory _connectionFactory;
+        public MakeRepository(IDbConnectionFactory connectionFactory)
         {
-            _connectionString = connectionString;
+            _connectionFactory = connectionFactory;
         }
 
         // ==============================
@@ -19,7 +18,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<IEnumerable<Make>> GetAllMakesAsync()
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT id, Name
@@ -35,7 +34,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Make?> GetMakeByIdAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT id, Name
@@ -51,7 +50,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Make?> GetMakeByNameAsync(string name)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT id, Name
@@ -67,7 +66,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<bool> ExistsByIdAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"SELECT 1 FROM Makes WHERE id = @Id";
 
@@ -80,7 +79,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Make?> CreateMakeAsync(Make make)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 INSERT INTO Makes (Name)
@@ -96,7 +95,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Make?> UpdateMakeAsync(Make make)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 UPDATE Makes
@@ -113,7 +112,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<bool> DeleteMakeAsync(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
+                        using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"DELETE FROM Makes WHERE id = @Id";
 

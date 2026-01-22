@@ -23,21 +23,16 @@ namespace backend
 
             builder.Logging.AddConsole();
 
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-            if (string.IsNullOrWhiteSpace(connectionString))
-            {
-                throw new InvalidOperationException(
-                    "Connection string 'DefaultConnection' is missing in appsettings.json.");
-            }
+            builder.Services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
 
-            builder.Services.AddScoped<ICarRepository, CarRepository>(p => new CarRepository(connectionString!));
-            builder.Services.AddScoped<IMakeRepository, MakeRepository>(p => new MakeRepository(connectionString!));
-            builder.Services.AddScoped<ICustomerRepository, CustomerRepository>(p => new CustomerRepository(connectionString!));
-            builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>(p => new EmployeeRepository(connectionString!));
-            builder.Services.AddScoped<ISupplierRepository, SupplierRepository>(p => new SupplierRepository(connectionString!));
-            builder.Services.AddScoped<IOrderRepository, OrderRepository>(p => new OrderRepository(connectionString!));
-            builder.Services.AddScoped<ISaleRepository, SaleRepository>(p => new SaleRepository(connectionString!));
-            builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>(p => new ServiceRequestRepository(connectionString!));
+            builder.Services.AddScoped<ICarRepository, CarRepository>();
+            builder.Services.AddScoped<IMakeRepository, MakeRepository>();
+            builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+            builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<ISaleRepository, SaleRepository>();
+            builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
 
 
             builder.Services.AddScoped<CarService>();
