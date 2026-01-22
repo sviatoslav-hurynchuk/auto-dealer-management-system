@@ -1,5 +1,7 @@
 ﻿using backend.GraphQL.Types;
 using backend.Services;
+using backend.Models;
+using backend.Repositories.Interfaces;
 using GraphQL;
 using GraphQL.Types;
 
@@ -7,9 +9,31 @@ namespace backend.GraphQL.Queries
 {
     public class CarQuery : ObjectGraphType
     {
-        public CarQuery(CarService carService)
+        public CarQuery(CarService carService, IMakeRepository makeRepository)
         {
             Name = "CarQueries";
+            Field<ListGraphType<CarType>>("searchCars")
+    .Argument<NonNullGraphType<CarSearchInputType>>("filter")
+    .Argument<StringGraphType>("makeName")
+    .ResolveAsync(async context =>
+    {
+        var filter = context.GetArgument<CarSearchParams>("filter");
+        var makeName = context.GetArgument<string?>("makeName");
+        if (!string.IsNullOrWhiteSpace(makeName))
+        {
+            var make = await makeRepository.GetMakeByNameAsync(makeName);
+            if (make != null)
+            {
+                filter.MakeId = make.Id;
+            }
+            else
+            {
+                return new List<Car>();
+            }
+        }
+
+        return await carService.SearchCarsAsync(filter);
+    });
 
             Field<CarType>("getCarById")
                 .Argument<NonNullGraphType<IntGraphType>>("carId")

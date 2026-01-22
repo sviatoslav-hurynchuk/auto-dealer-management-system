@@ -2,7 +2,6 @@ using backend.GraphQL;
 using backend.GraphQL.Mutations;
 using backend.GraphQL.Queries;
 using backend.GraphQL.Types;
-using backend.Models;
 using backend.Repositories;
 using backend.Repositories.Interfaces;
 using backend.Services;
