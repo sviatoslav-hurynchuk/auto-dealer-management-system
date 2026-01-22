@@ -1,5 +1,6 @@
 ﻿using backend.GraphQL.Types;
 using backend.Services;
+using backend.Models;
 using backend.Repositories.Interfaces;
 using GraphQL;
 using GraphQL.Types;
