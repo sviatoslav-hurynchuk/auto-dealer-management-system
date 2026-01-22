@@ -24,6 +24,15 @@ namespace backend.Services
         }
 
         // ==============================
+        // SEARCH
+        // ==============================
+        public async Task<List<Car>> SearchCarsAsync(CarSearchParams search)
+        {
+            return await _carRepository.SearchCarsAsync(search);
+        }
+
+
+        // ==============================
         // GET ALL
         // ==============================
         public async Task<IEnumerable<Car>> GetAllCarsAsync()

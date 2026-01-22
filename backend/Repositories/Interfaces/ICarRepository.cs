@@ -4,6 +4,7 @@ namespace backend.Repositories.Interfaces
 {
     public interface ICarRepository
     {
+        Task<List<Car>> SearchCarsAsync(CarSearchParams filter);
         Task<IEnumerable<Car>> GetAllCarsAsync();
         Task<Car?> GetCarByIdAsync(int id);
         Task<IEnumerable<CarWithStats>> GetCarsWithStatsAsync();
