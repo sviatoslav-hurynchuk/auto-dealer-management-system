@@ -28,7 +28,7 @@ namespace backend.GraphQL.Queries
             }
             else
             {
-                filter.MakeId = null;
+                return new List<Car>();
             }
         }
 
