@@ -3,6 +3,7 @@ using backend.Repositories.Interfaces;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using System.Text;
+using System.Data; // 👈 Додано для IDbTransaction
 
 namespace backend.Repositories
 {
@@ -162,11 +163,12 @@ namespace backend.Repositories
         }
 
         // ==============================
-        // CREATE
+        // CREATE (UPDATED FOR TRANSACTION)
         // ==============================
-        public async Task<Car?> CreateCarAsync(Car car)
+        public async Task<Car?> CreateCarAsync(Car car, IDbTransaction? transaction = null)
         {
-            using var connection = _connectionFactory.CreateConnection();
+            // 1. Використовуємо існуюче з'єднання з транзакції або створюємо нове
+            var connection = transaction?.Connection ?? _connectionFactory.CreateConnection();
 
             const string sql = @"
                 INSERT INTO Cars
@@ -190,7 +192,19 @@ namespace backend.Repositories
                 (@MakeId, @Model, @Year, @Price, @Color, @Vin, @SupplierId, @Description, @ImageUrl, @Condition, @Mileage, @BodyType, @Status);
             ";
 
-            return await connection.QuerySingleOrDefaultAsync<Car>(sql, car);
+            try
+            {
+                // 2. Передаємо transaction у Dapper
+                return await connection.QuerySingleOrDefaultAsync<Car>(sql, car, transaction: transaction);
+            }
+            finally
+            {
+                // 3. Закриваємо з'єднання ТІЛЬКИ якщо транзакції не було (ми створили його самі)
+                if (transaction == null)
+                {
+                    connection.Dispose();
+                }
+            }
         }
 
         // ==============================

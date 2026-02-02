@@ -2,6 +2,7 @@
 using backend.Models;
 using backend.Repositories;
 using backend.Repositories.Interfaces;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Options;
 using System.Transactions;
 
@@ -14,14 +15,16 @@ namespace backend.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IMakeRepository _makeRepository;
         private readonly ISupplierRepository _supplierRepository;
+        private readonly IDbConnectionFactory _connectionFactory;
 
-        public CarService(ICarRepository carRepository, ISaleRepository saleRepository,IOrderRepository orderRepository, IMakeRepository makeRepository, ISupplierRepository supplierRepository)
+        public CarService(ICarRepository carRepository, ISaleRepository saleRepository,IOrderRepository orderRepository, IMakeRepository makeRepository, ISupplierRepository supplierRepository, IDbConnectionFactory connectionFactory)
         {
             _carRepository = carRepository;
             _saleRepository = saleRepository;
             _orderRepository = orderRepository;
             _makeRepository = makeRepository;
             _supplierRepository = supplierRepository;
+            _connectionFactory = connectionFactory;
         }
 
         // ==============================
@@ -85,25 +88,43 @@ namespace backend.Services
             if (string.IsNullOrWhiteSpace(makeName))
                 throw new ValidationException("Make name is required.");
 
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            // 1. Створюємо ОДНЕ з'єднання
+            using var connection = _connectionFactory.CreateConnection();
+            connection.Open();
 
-            Make? make = await _makeRepository.GetMakeByNameAsync(makeName);
+            // 2. Відкриваємо транзакцію
+            using var transaction = connection.BeginTransaction();
 
-            if (make == null)
+            try
             {
-                make = new Make { Name = makeName };
-                make = await _makeRepository.CreateMakeAsync(make);
+                // 3. Передаємо транзакцію (Dapper сам підхопить з'єднання з неї)
+                Make? make = await _makeRepository.GetMakeByNameAsync(makeName, transaction);
 
                 if (make == null)
-                    throw new ValidationException("Failed to create make.");
+                {
+                    make = new Make { Name = makeName };
+                    make = await _makeRepository.CreateMakeAsync(make, transaction);
+
+                    if (make == null) throw new ValidationException("Failed to create make.");
+                }
+
+                car.MakeId = make.Id;
+
+                // Передаємо ту саму транзакцію
+                var createdCar = await _carRepository.CreateCarAsync(car, transaction);
+
+                if (createdCar == null) throw new ValidationException("Failed to create car.");
+
+                // 4. Якщо все ок — комітимо
+                transaction.Commit();
+
+                return createdCar;
             }
-
-            car.MakeId = make.Id;
-            var createdCar = await CreateCarAsync(car);
-
-            scope.Complete();
-
-            return createdCar;
+            catch
+            {
+                // Якщо помилка — зміни автоматично скасуються при виході з using
+                throw;
+            }
         }
 
         // ==============================
