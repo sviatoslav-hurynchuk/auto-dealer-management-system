@@ -17,7 +17,7 @@ namespace backend.Services
         private readonly ISupplierRepository _supplierRepository;
         private readonly IDbConnectionFactory _connectionFactory;
 
-        public CarService(ICarRepository carRepository, ISaleRepository saleRepository,IOrderRepository orderRepository, IMakeRepository makeRepository, ISupplierRepository supplierRepository, IDbConnectionFactory connectionFactory)
+        public CarService(ICarRepository carRepository, ISaleRepository saleRepository, IOrderRepository orderRepository, IMakeRepository makeRepository, ISupplierRepository supplierRepository, IDbConnectionFactory connectionFactory)
         {
             _carRepository = carRepository;
             _saleRepository = saleRepository;
@@ -34,7 +34,6 @@ namespace backend.Services
         {
             return await _carRepository.SearchCarsAsync(search);
         }
-
 
         // ==============================
         // GET ALL
@@ -68,7 +67,6 @@ namespace backend.Services
             return carsWithInfo;
         }
 
-
         // ==============================
         // CREATE
         // ==============================
@@ -83,21 +81,19 @@ namespace backend.Services
 
             return createdCar;
         }
+
         public async Task<Car> CreateCarWithMakeAsync(string makeName, Car car)
         {
             if (string.IsNullOrWhiteSpace(makeName))
                 throw new ValidationException("Make name is required.");
 
-            // 1. Створюємо ОДНЕ з'єднання
             using var connection = _connectionFactory.CreateConnection();
             connection.Open();
 
-            // 2. Відкриваємо транзакцію
             using var transaction = connection.BeginTransaction();
 
             try
             {
-                // 3. Передаємо транзакцію (Dapper сам підхопить з'єднання з неї)
                 Make? make = await _makeRepository.GetMakeByNameAsync(makeName, transaction);
 
                 if (make == null)
@@ -110,19 +106,22 @@ namespace backend.Services
 
                 car.MakeId = make.Id;
 
-                // Передаємо ту саму транзакцію
+                ValidateCarForCreate(car);
+
+                var supplierExists = await _supplierRepository.ExistsByIdAsync(car.SupplierId);
+                if (!supplierExists)
+                    throw new ValidationException($"Supplier with id {car.SupplierId} not found.");
+
                 var createdCar = await _carRepository.CreateCarAsync(car, transaction);
 
                 if (createdCar == null) throw new ValidationException("Failed to create car.");
 
-                // 4. Якщо все ок — комітимо
                 transaction.Commit();
 
                 return createdCar;
             }
             catch
             {
-                // Якщо помилка — зміни автоматично скасуються при виході з using
                 throw;
             }
         }
@@ -142,7 +141,7 @@ namespace backend.Services
             if (existingCar == null)
                 throw new ValidationException($"Car with id {car.Id} not found.");
 
-            if(existingCar.Vin != car.Vin)
+            if (existingCar.Vin != car.Vin)
                 throw new ValidationException($"VIN cannot be changed in already existing car");
 
             var updatedCar = await _carRepository.UpdateCarAsync(car);
@@ -234,9 +233,6 @@ namespace backend.Services
             var supplier = await _supplierRepository.ExistsByIdAsync(car.SupplierId);
             if (supplier == false)
                 throw new ValidationException($"Supplier with id {car.SupplierId} not found.");
-
         }
-
-
     }
 }
