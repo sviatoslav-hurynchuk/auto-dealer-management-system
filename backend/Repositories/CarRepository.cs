@@ -9,6 +9,25 @@ namespace backend.Repositories
     public class CarRepository : ICarRepository
     {
         private readonly IDbConnectionFactory _connectionFactory;
+
+        private const string _baseSelectSql = @"
+            SELECT 
+                Id, 
+                MakeId, 
+                Model, 
+                Year, 
+                Price, 
+                Color, 
+                VIN, 
+                SupplierID, 
+                Description, 
+                ImageUrl, 
+                Condition, 
+                Mileage, 
+                BodyType, 
+                Status
+            FROM Cars";
+
         public CarRepository(IDbConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
@@ -21,10 +40,7 @@ namespace backend.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
 
-            var sql = new StringBuilder(@"
-        SELECT Id, MakeId, Model, Year, Price, VIN, Status
-        FROM Cars
-        WHERE 1 = 1");
+            var sql = new StringBuilder($"{_baseSelectSql} WHERE 1 = 1");
 
             var parameters = new DynamicParameters();
 
@@ -97,8 +113,6 @@ namespace backend.Repositories
             return result.ToList();
         }
 
-
-
         // ==============================
         // GET ALL
         // ==============================
@@ -106,25 +120,7 @@ namespace backend.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
 
-            const string sql = @"
-                SELECT 
-                    id,
-                    MakeID,
-                    Model,
-                    Year,
-                    Price,
-                    Color,
-                    VIN,
-                    SupplierID,
-                    Description,
-                    ImageUrl,
-                    Condition,
-                    Mileage,
-                    BodyType,
-                    Status
-                FROM Cars
-                ORDER BY id;
-            ";
+            var sql = $"{_baseSelectSql} ORDER BY Id;";
 
             return await connection.QueryAsync<Car>(sql);
         }
@@ -136,25 +132,7 @@ namespace backend.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
 
-            const string sql = @"
-                SELECT 
-                    id,
-                    MakeID,
-                    Model,
-                    Year,
-                    Price,
-                    Color,
-                    VIN,
-                    SupplierID,
-                    Description,
-                    ImageUrl,
-                    Condition,
-                    Mileage,
-                    BodyType,
-                    Status
-                FROM Cars
-                WHERE id = @Id;
-            ";
+            var sql = $"{_baseSelectSql} WHERE Id = @Id;";
 
             return await connection.QuerySingleOrDefaultAsync<Car>(sql, new { Id = id });
         }
@@ -165,25 +143,23 @@ namespace backend.Repositories
         public async Task<IEnumerable<CarWithStats>> GetCarsWithStatsAsync()
         {
             var sql = @"
-        SELECT 
-            c.id,
-            c.Model,
-            c.VIN,
-            c.Price,
-            c.Status,
-            ISNULL(s.CompanyName, '') AS SupplierName,
-            (SELECT COUNT(*) FROM Orders o WHERE o.CarID = c.id) AS OrdersCount,
-            (SELECT MAX(saleDate) FROM Sales sa WHERE sa.CarID = c.id) AS LastSaleDate
-        FROM Cars c
-        LEFT JOIN Suppliers s ON c.SupplierID = s.id
-        ORDER BY c.id;
-    ";
+                SELECT 
+                    c.id,
+                    c.Model,
+                    c.VIN,
+                    c.Price,
+                    c.Status,
+                    ISNULL(s.CompanyName, '') AS SupplierName,
+                    (SELECT COUNT(*) FROM Orders o WHERE o.CarID = c.id) AS OrdersCount,
+                    (SELECT MAX(saleDate) FROM Sales sa WHERE sa.CarID = c.id) AS LastSaleDate
+                FROM Cars c
+                LEFT JOIN Suppliers s ON c.SupplierID = s.id
+                ORDER BY c.id;
+            ";
 
             using var connection = _connectionFactory.CreateConnection();
             return await connection.QueryAsync<CarWithStats>(sql);
         }
-
-
 
         // ==============================
         // CREATE
@@ -289,6 +265,5 @@ namespace backend.Repositories
             var result = await connection.QueryFirstOrDefaultAsync<int?>(sql, new { Vin = vin });
             return result.HasValue;
         }
-
     }
 }
