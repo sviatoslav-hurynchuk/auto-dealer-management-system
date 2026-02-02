@@ -2,7 +2,9 @@
 using backend.Models;
 using backend.Repositories;
 using backend.Repositories.Interfaces;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Options;
+using System.Transactions;
 
 namespace backend.Services
 {
@@ -13,14 +15,16 @@ namespace backend.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IMakeRepository _makeRepository;
         private readonly ISupplierRepository _supplierRepository;
+        private readonly IDbConnectionFactory _connectionFactory;
 
-        public CarService(ICarRepository carRepository, ISaleRepository saleRepository,IOrderRepository orderRepository, IMakeRepository makeRepository, ISupplierRepository supplierRepository)
+        public CarService(ICarRepository carRepository, ISaleRepository saleRepository, IOrderRepository orderRepository, IMakeRepository makeRepository, ISupplierRepository supplierRepository, IDbConnectionFactory connectionFactory)
         {
             _carRepository = carRepository;
             _saleRepository = saleRepository;
             _orderRepository = orderRepository;
             _makeRepository = makeRepository;
             _supplierRepository = supplierRepository;
+            _connectionFactory = connectionFactory;
         }
 
         // ==============================
@@ -30,7 +34,6 @@ namespace backend.Services
         {
             return await _carRepository.SearchCarsAsync(search);
         }
-
 
         // ==============================
         // GET ALL
@@ -64,7 +67,6 @@ namespace backend.Services
             return carsWithInfo;
         }
 
-
         // ==============================
         // CREATE
         // ==============================
@@ -79,42 +81,47 @@ namespace backend.Services
 
             return createdCar;
         }
+
         public async Task<Car> CreateCarWithMakeAsync(string makeName, Car car)
         {
             if (string.IsNullOrWhiteSpace(makeName))
                 throw new ValidationException("Make name is required.");
 
-            Make? make = null;
-            bool isNewMake = false;
+            using var connection = _connectionFactory.CreateConnection();
+            connection.Open();
+
+            using var transaction = connection.BeginTransaction();
 
             try
             {
-                make = await _makeRepository.GetMakeByNameAsync(makeName);
+                Make? make = await _makeRepository.GetMakeByNameAsync(makeName, transaction);
 
                 if (make == null)
                 {
                     make = new Make { Name = makeName };
-                    make = await _makeRepository.CreateMakeAsync(make);
-                    if (make == null)
-                        throw new ValidationException("Failed to create make.");
-                    isNewMake = true;
+                    make = await _makeRepository.CreateMakeAsync(make, transaction);
+
+                    if (make == null) throw new ValidationException("Failed to create make.");
                 }
+
                 car.MakeId = make.Id;
-                var createdCar = await CreateCarAsync(car);
+
+                ValidateCarForCreate(car);
+
+                var supplierExists = await _supplierRepository.ExistsByIdAsync(car.SupplierId);
+                if (!supplierExists)
+                    throw new ValidationException($"Supplier with id {car.SupplierId} not found.");
+
+                var createdCar = await _carRepository.CreateCarAsync(car, transaction);
+
+                if (createdCar == null) throw new ValidationException("Failed to create car.");
+
+                transaction.Commit();
+
                 return createdCar;
             }
             catch
             {
-                if (isNewMake && make != null)
-                {
-                    try
-                    {
-                        await _makeRepository.DeleteMakeAsync(make.Id);
-                    }
-                    catch
-                    {
-                    }
-                    }
                 throw;
             }
         }
@@ -134,7 +141,7 @@ namespace backend.Services
             if (existingCar == null)
                 throw new ValidationException($"Car with id {car.Id} not found.");
 
-            if(existingCar.Vin != car.Vin)
+            if (existingCar.Vin != car.Vin)
                 throw new ValidationException($"VIN cannot be changed in already existing car");
 
             var updatedCar = await _carRepository.UpdateCarAsync(car);
@@ -226,9 +233,6 @@ namespace backend.Services
             var supplier = await _supplierRepository.ExistsByIdAsync(car.SupplierId);
             if (supplier == false)
                 throw new ValidationException($"Supplier with id {car.SupplierId} not found.");
-
         }
-
-
     }
 }

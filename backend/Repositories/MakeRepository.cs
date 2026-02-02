@@ -2,6 +2,7 @@
 using backend.Repositories.Interfaces;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace backend.Repositories
 {
@@ -18,7 +19,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<IEnumerable<Make>> GetAllMakesAsync()
         {
-                        using var connection = _connectionFactory.CreateConnection();
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT id, Name
@@ -34,7 +35,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Make?> GetMakeByIdAsync(int id)
         {
-                        using var connection = _connectionFactory.CreateConnection();
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT id, Name
@@ -46,11 +47,12 @@ namespace backend.Repositories
         }
 
         // ==============================
-        // GET BY NAME
+        // GET BY NAME (UPDATED FOR TRANSACTION)
         // ==============================
-        public async Task<Make?> GetMakeByNameAsync(string name)
+        public async Task<Make?> GetMakeByNameAsync(string name, IDbTransaction? transaction = null)
         {
-                        using var connection = _connectionFactory.CreateConnection();
+            // 1. Connection management
+            var connection = transaction?.Connection ?? _connectionFactory.CreateConnection();
 
             const string sql = @"
                 SELECT id, Name
@@ -58,7 +60,19 @@ namespace backend.Repositories
                 WHERE Name = @Name;
             ";
 
-            return await connection.QuerySingleOrDefaultAsync<Make>(sql, new { Name = name });
+            try
+            {
+                // 2. Pass transaction
+                return await connection.QuerySingleOrDefaultAsync<Make>(sql, new { Name = name }, transaction: transaction);
+            }
+            finally
+            {
+                // 3. Dispose if we created it
+                if (transaction == null)
+                {
+                    connection.Dispose();
+                }
+            }
         }
 
         // ==============================
@@ -66,7 +80,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<bool> ExistsByIdAsync(int id)
         {
-                        using var connection = _connectionFactory.CreateConnection();
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"SELECT 1 FROM Makes WHERE id = @Id";
 
@@ -75,11 +89,11 @@ namespace backend.Repositories
         }
 
         // ==============================
-        // CREATE
+        // CREATE (UPDATED FOR TRANSACTION)
         // ==============================
-        public async Task<Make?> CreateMakeAsync(Make make)
+        public async Task<Make?> CreateMakeAsync(Make make, IDbTransaction? transaction = null)
         {
-                        using var connection = _connectionFactory.CreateConnection();
+            var connection = transaction?.Connection ?? _connectionFactory.CreateConnection();
 
             const string sql = @"
                 INSERT INTO Makes (Name)
@@ -87,7 +101,17 @@ namespace backend.Repositories
                 VALUES (@Name);
             ";
 
-            return await connection.QuerySingleOrDefaultAsync<Make>(sql, make);
+            try
+            {
+                return await connection.QuerySingleOrDefaultAsync<Make>(sql, make, transaction: transaction);
+            }
+            finally
+            {
+                if (transaction == null)
+                {
+                    connection.Dispose();
+                }
+            }
         }
 
         // ==============================
@@ -95,7 +119,7 @@ namespace backend.Repositories
         // ==============================
         public async Task<Make?> UpdateMakeAsync(Make make)
         {
-                        using var connection = _connectionFactory.CreateConnection();
+            using var connection = _connectionFactory.CreateConnection();
 
             const string sql = @"
                 UPDATE Makes
@@ -108,16 +132,26 @@ namespace backend.Repositories
         }
 
         // ==============================
-        // DELETE
+        // DELETE (UPDATED FOR TRANSACTION)
         // ==============================
-        public async Task<bool> DeleteMakeAsync(int id)
+        public async Task<bool> DeleteMakeAsync(int id, IDbTransaction? transaction = null)
         {
-                        using var connection = _connectionFactory.CreateConnection();
+            var connection = transaction?.Connection ?? _connectionFactory.CreateConnection();
 
             const string sql = @"DELETE FROM Makes WHERE id = @Id";
 
-            var affected = await connection.ExecuteAsync(sql, new { Id = id });
-            return affected > 0;
+            try
+            {
+                var affected = await connection.ExecuteAsync(sql, new { Id = id }, transaction: transaction);
+                return affected > 0;
+            }
+            finally
+            {
+                if (transaction == null)
+                {
+                    connection.Dispose();
+                }
+            }
         }
     }
 }
