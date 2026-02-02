@@ -19,61 +19,57 @@ namespace backend.Repositories
         // ======================
         public async Task<List<Car>> SearchCarsAsync(CarSearchParams filter)
         {
-            var cars = new List<Car>();
-
             using var connection = _connectionFactory.CreateConnection();
-            using var cmd = connection.CreateCommand();
 
             var sql = new StringBuilder(@"
         SELECT Id, MakeId, Model, Year, Price, VIN, Status
         FROM Cars
-        WHERE 1 = 1
-    ");
+        WHERE 1 = 1");
 
-            // 🔹 FILTERS
+            var parameters = new DynamicParameters();
+
             if (filter.MakeId.HasValue)
             {
                 sql.Append(" AND MakeId = @MakeId");
-                cmd.Parameters.AddWithValue("@MakeId", filter.MakeId.Value);
+                parameters.Add("MakeId", filter.MakeId.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Model))
             {
                 sql.Append(" AND Model LIKE @Model");
-                cmd.Parameters.AddWithValue("@Model", $"%{filter.Model}%");
+                parameters.Add("Model", $"%{filter.Model}%");
             }
 
             if (filter.PriceFrom.HasValue)
             {
                 sql.Append(" AND Price >= @PriceFrom");
-                cmd.Parameters.AddWithValue("@PriceFrom", filter.PriceFrom.Value);
+                parameters.Add("PriceFrom", filter.PriceFrom.Value);
             }
 
             if (filter.PriceTo.HasValue)
             {
                 sql.Append(" AND Price <= @PriceTo");
-                cmd.Parameters.AddWithValue("@PriceTo", filter.PriceTo.Value);
+                parameters.Add("PriceTo", filter.PriceTo.Value);
             }
 
             if (filter.YearFrom.HasValue)
             {
                 sql.Append(" AND Year >= @YearFrom");
-                cmd.Parameters.AddWithValue("@YearFrom", filter.YearFrom.Value);
+                parameters.Add("YearFrom", filter.YearFrom.Value);
             }
 
             if (filter.YearTo.HasValue)
             {
                 sql.Append(" AND Year <= @YearTo");
-                cmd.Parameters.AddWithValue("@YearTo", filter.YearTo.Value);
+                parameters.Add("YearTo", filter.YearTo.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Status))
             {
                 sql.Append(" AND Status = @Status");
-                cmd.Parameters.AddWithValue("@Status", filter.Status);
+                parameters.Add("Status", filter.Status);
             }
 
-            // 🔹 SORT (WHITELIST!)
             var sortColumn = filter.SortBy?.ToLower() switch
             {
                 "price" => "Price",
@@ -88,36 +84,17 @@ namespace backend.Repositories
 
             sql.Append($" ORDER BY {sortColumn} {sortDir}");
 
-            // 🔹 PAGINATION
             sql.Append(" OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
 
             var page = filter.Page > 0 ? filter.Page : 1;
             var pageSize = filter.PageSize > 0 ? filter.PageSize : 20;
 
-            cmd.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
-            cmd.Parameters.AddWithValue("@PageSize", pageSize);
+            parameters.Add("Offset", (page - 1) * pageSize);
+            parameters.Add("PageSize", pageSize);
 
+            var result = await connection.QueryAsync<Car>(sql.ToString(), parameters);
 
-            cmd.CommandText = sql.ToString();
-
-            await connection.OpenAsync();
-            using var reader = await cmd.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                cars.Add(new Car
-                {
-                    Id = reader.GetInt32(0),
-                    MakeId = reader.GetInt32(1),
-                    Model = reader.GetString(2),
-                    Year = reader.GetInt32(3),
-                    Price = reader.GetDecimal(4),
-                    Vin = reader.GetString(5),
-                    Status = reader.GetString(6)
-                });
-            }
-
-            return cars;
+            return result.ToList();
         }
 
 
