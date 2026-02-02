@@ -3,6 +3,7 @@ using backend.Models;
 using backend.Repositories;
 using backend.Repositories.Interfaces;
 using Microsoft.Extensions.Options;
+using System.Transactions;
 
 namespace backend.Services
 {
@@ -84,39 +85,25 @@ namespace backend.Services
             if (string.IsNullOrWhiteSpace(makeName))
                 throw new ValidationException("Make name is required.");
 
-            Make? make = null;
-            bool isNewMake = false;
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-            try
+            Make? make = await _makeRepository.GetMakeByNameAsync(makeName);
+
+            if (make == null)
             {
-                make = await _makeRepository.GetMakeByNameAsync(makeName);
+                make = new Make { Name = makeName };
+                make = await _makeRepository.CreateMakeAsync(make);
 
                 if (make == null)
-                {
-                    make = new Make { Name = makeName };
-                    make = await _makeRepository.CreateMakeAsync(make);
-                    if (make == null)
-                        throw new ValidationException("Failed to create make.");
-                    isNewMake = true;
-                }
-                car.MakeId = make.Id;
-                var createdCar = await CreateCarAsync(car);
-                return createdCar;
+                    throw new ValidationException("Failed to create make.");
             }
-            catch
-            {
-                if (isNewMake && make != null)
-                {
-                    try
-                    {
-                        await _makeRepository.DeleteMakeAsync(make.Id);
-                    }
-                    catch
-                    {
-                    }
-                    }
-                throw;
-            }
+
+            car.MakeId = make.Id;
+            var createdCar = await CreateCarAsync(car);
+
+            scope.Complete();
+
+            return createdCar;
         }
 
         // ==============================
